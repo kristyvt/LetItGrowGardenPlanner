@@ -20,7 +20,7 @@ class Plan:
 
     def display_plot_list(self):
         for plot in self.plot_list:
-            plot.display_plot_set()
+            plot.display_plot()
 
     def display_master_plant_list(self):
         for plant in self.master_plant_list:
@@ -83,10 +83,8 @@ class Plan:
     def check_soil_moisture_requirement(self,
                                         crop_soil_moisture_requirement,
                                         plot_soil_moisture_id):
-        if ((plot_soil_moisture_id - crop_soil_moisture_requirement >= -1)
-                and (plot_soil_moisture_id - crop_soil_moisture_requirement <= 1)):
-            print('Soil moisture level within acceptable range (1 level):'
-                  + str((plot_soil_moisture_id - crop_soil_moisture_requirement)))
+        if plot_soil_moisture_id == crop_soil_moisture_requirement:
+            print('Meets Soil moisture Requirement')
             return True
         else:
             print('Excessive difference in soil moisture level of '
@@ -104,13 +102,62 @@ class Plan:
                   + (str(plot_sun_id - crop_sun_requirement)))
             return False
 
+    def check_space_requirement(self,
+                                space_required_seedling,
+                                space_required_seeds,
+                                plot_size,
+                                measurement_unit_id,
+                                crop_quantity,
+                                crop_set_type,
+                                is_container,
+                                depth_requirement,
+                                container_depth):
+
+        if measurement_unit_id == 2:  # measurement ID 2 is feet
+            plot_size = plot_size * 12  # convert to inches
+
+        # 1 is seedlings
+        if crop_set_type == 1:
+            space_required = space_required_seedling * crop_quantity
+
+        # 2 and 3 are seeds and bulbs respectively
+        else:
+            space_required = space_required_seeds * crop_quantity
+
+        print('plot size is ' + str(plot_size))
+        print('space_required is ' + str(space_required))
+
+        # check for adequate distance between plants
+        if space_required > plot_size:
+            return False
+
+        # if the plot being checked is a container, check its depth
+        if is_container:
+            print('plot is a container')
+            if depth_requirement > container_depth:
+                return False
+            else:
+                return True  # passes container depth check
+        else:
+            print('plot is not a container')
+        return True  # passed all applicable spacing checks
+
     def check_requirements(self,
                            crop_nitrogen_level,
                            plot_nitrogen_level,
                            crop_sun_requirement,
                            plot_sun_id,
                            crop_soil_moisture_requirement,
-                           plot_soil_moisture_id):
+                           plot_soil_moisture_id,
+                           space_required_seedling,
+                           space_required_seeds,
+                           plot_size,
+                           measurement_unit_id,
+                           crop_quantity,
+                           crop_set_type,
+                           is_container,
+                           depth_requirement,
+                           container_depth):
 
         if not self.check_nitrogen_level(crop_nitrogen_level,
                                          plot_nitrogen_level):
@@ -122,6 +169,17 @@ class Plan:
 
         if not self.check_soil_moisture_requirement(crop_soil_moisture_requirement,
                                                     plot_soil_moisture_id):
+            return False
+
+        if not self.check_space_requirement(space_required_seedling,
+                                            space_required_seeds,
+                                            plot_size,
+                                            measurement_unit_id,
+                                            crop_quantity,
+                                            crop_set_type,
+                                            is_container,
+                                            depth_requirement,
+                                            container_depth):
             return False
 
         return True
@@ -153,8 +211,8 @@ class Plan:
                     and season_id == season:
                 print('plot ' + str(plot.plot_id) + ' is taken')
                 self.status = 'taken'
-                plot.plot_status = 'taken'                          # need to fix this so that it's only "taken" for that season
-                return False                                        # or set a different variable for the plot status per season
+                plot.plot_status = 'taken'  # need to fix this so that it's only "taken" for that season
+                return False  # or set a different variable for the plot status per season
             else:
                 print('plot ' + str(plot.plot_id) + ' is empty')
                 self.status = 'empty'
@@ -174,6 +232,8 @@ class Plan:
         for plant in self.plant_set_list:
 
             this_plant_id = plant.plant_id
+            crop_quantity = plant.set_quantity
+            crop_set_type = plant.set_type_id
             space_required_seedling = None
             space_required_seeds = None
             depth_requirement = None
@@ -245,7 +305,16 @@ class Plan:
                                                                                    sun_id,
                                                                                    plot.sun_id,
                                                                                    soil_moisture_id,
-                                                                                   plot.soil_moisture_id):
+                                                                                   plot.soil_moisture_id,
+                                                                                   space_required_seedling,
+                                                                                   space_required_seeds,
+                                                                                   plot.plot_size,
+                                                                                   plot.measurement_unit_id,
+                                                                                   crop_quantity,
+                                                                                   crop_set_type,
+                                                                                   plot.is_container,
+                                                                                   depth_requirement,
+                                                                                   plot.container_depth):
                             for p in self.plant_set_list:
                                 print('plant in list is ' + str(p.plant_id))
                                 print('plant to check is ' + str(this_plant_id))
@@ -253,6 +322,11 @@ class Plan:
                                     print('matches')
                                     p.add_plot_id(plot.plot_id)
                                     p.add_season_id(season)
+                                    p.export_plant_set(p.set_quantity,
+                                                       p.plant_id,
+                                                       p.my_season_id,
+                                                       p.plot_id,
+                                                       p.set_type_id)
                                     plot.plot_status = 'taken'
                                     self.plant_status = 'assigned'
                                     break
