@@ -204,32 +204,37 @@ class AddPlantPage(tk.Frame):
                    column=2,
                    columnspan=4)
 
-        label = tk.Label(self,
-                         text="Plant Name:",
-                         justify=tk.LEFT,
-                         anchor='w'
-                         )
+        label = tk.Label(self, text=" ")
         label.grid(row=2,
                    column=1)
+
+        label = tk.Label(self,
+                         text="Plant Name:",
+                         justify=tk.RIGHT,
+                         anchor='e'
+                         )
+        label.grid(row=3,
+                   column=1,
+                   columnspan=2)
         self.plant_name_entry = tk.Entry(self,
                                          justify=tk.LEFT,
                                          width=40,
                                          )
-        self.plant_name_entry.grid(row=2,
-                                   column=2,
+        self.plant_name_entry.grid(row=3,
+                                   column=3,
                                    columnspan=2)
 
         self.always_include = tk.IntVar()
         self.always_include_checkbox = (tk.Checkbutton(self,
-                                                       text="Always Include?",
+                                                       text="Include every year?",
                                                        variable=self.always_include,
                                                        onvalue=1,
                                                        offvalue=0,
                                                        width=20,
                                                        justify=tk.LEFT,
                                                        anchor='w'))
-        self.always_include_checkbox.grid(row=2,
-                                          column=4)
+        self.always_include_checkbox.grid(row=3,
+                                          column=5)
 
         self.plant_spring = tk.IntVar()
         self.spring_checkbox = (tk.Checkbutton(self,
@@ -240,8 +245,8 @@ class AddPlantPage(tk.Frame):
                                                width=20,
                                                justify=tk.LEFT,
                                                anchor='w'))
-        self.spring_checkbox.grid(row=2,
-                                  column=5)
+        self.spring_checkbox.grid(row=3,
+                                  column=6)
 
         self.plant_fall = tk.IntVar()
         self.fall_checkbox = (tk.Checkbutton(self,
@@ -253,163 +258,194 @@ class AddPlantPage(tk.Frame):
                                              justify=tk.LEFT,
                                              anchor='w'))
         self.fall_checkbox.grid(row=3,
-                                column=5)
+                                column=7)
 
         label = tk.Label(self,
-                         text="Days to Harvest:",
-                         anchor='e',
-                         justify=tk.RIGHT)
-        label.grid(row=2,
-                   column=6)
+                         text=" ")
+        label.grid(row=4,
+                   column=1)
 
-        self.days_to_harvest_entry = tk.Entry(self,
-                                              width=5,
-                                              justify=tk.LEFT)
-        self.days_to_harvest_entry.grid(row=2,
-                                        column=7)
 
         label = tk.Label(self,
                          text="Crop Rotation Group:")
-        label.grid(row=4, column=1)
+        label.grid(row=5,
+                   column=1,
+                   columnspan=2)
         self.crop_group_combo = DropDown(self,
                                          crop_group_query,
-                                         4,
-                                         2,
+                                         5,
+                                         3,
                                          1,
                                          'W')
 
         label = tk.Label(self,
                          text="Frost Tolerance:")
-        label.grid(row=4,
-                   column=3)
+        label.grid(row=5,
+                   column=4,
+                   columnspan=2)
         self.frost_tolerance_combo = DropDown(self,
                                               frost_tolerance_query,
-                                              4,
-                                              4,
+                                              5,
+                                              6,
                                               1,
                                               'W')
 
         label = tk.Label(self,
-                         text="Environment Requirements",
-                         justify=tk.LEFT,
-                         anchor='w')
-        label.grid(row=5,
-                   column=1,
-                   columnspan=2,
-                   sticky='W')
-
-        label = tk.Label(self,
-                         text="Sun:")
+                         text="",)
         label.grid(row=6,
                    column=1)
+
+        label = tk.Label(self,
+                         text="Sun Required:")
+        label.grid(row=7,
+                   column=1,
+                   columnspan=2)
         self.sun_combo = DropDown(self,
                                   sun_query,
-                                  6,
-                                  2,
+                                  7,
+                                  3,
                                   1,
                                   'W')
 
         label = tk.Label(self,
-                         text="Soil Moisture:")
-        label.grid(row=6,
-                   column=3)
+                         text="Soil Moisture Required:")
+        label.grid(row=7,
+                   column=4,
+                   columnspan=2)
         self.soil_moisture_combo = DropDown(self,
                                             soil_moisture_query,
+                                            7,
                                             6,
-                                            4,
                                             1,
                                             'W')
 
         label = tk.Label(self,
-                         text="Watering:")
-        label.grid(row=6,
-                   column=5,
-                   columnspan=1)
-        self.watering_requirement_combo = DropDown(self,
-                                                   watering_requirement_query,
-                                                   6,
-                                                   6,
-                                                   1,
-                                                   'W')
-
-        label = tk.Label(self,
-                         text="Spacing Requirements",
-                         justify=tk.LEFT,
-                         anchor='w')
-        label.grid(row=7,
-                   column=1,
-                   columnspan=2,
-                   sticky='W')
-
-        label = tk.Label(self,
-                         text="Space per Seedling, in inches:",
-                         anchor='w',
-                         justify=tk.RIGHT)
+                         text=" ")
         label.grid(row=8,
                    column=1)
-
-        self.space_per_seedling_entry = tk.Entry(self,
-                                                 width=5,
-                                                 justify=tk.LEFT)
-        self.space_per_seedling_entry.grid(row=8,
-                                           column=2)
-
-        label = tk.Label(self,
-                         text="Space per Seed Pack, in inches:",
-                         anchor='w',
-                         justify=tk.RIGHT)
-        label.grid(row=8,
-                   column=3)
-
-        self.space_per_seedpack_entry = tk.Entry(self,
-                                                 width=5,
-                                                 justify=tk.LEFT)
-        self.space_per_seedpack_entry.grid(row=8,
-                                           column=4)
-
-        label = tk.Label(self,
-                         text="Depth per Plant, in inches:",
-                         anchor='w',
-                         justify=tk.RIGHT)
-        label.grid(row=8,
-                   column=5)
-
-        self.depth_per_plant_entry = tk.Entry(self,
-                                              width=5,
-                                              justify=tk.LEFT)
-        self.depth_per_plant_entry.grid(row=8,
-                                        column=6)
-
-        label = tk.Label(self,
-                         text="Depth to Plant Seeds, inches, 2 decimals ok:",
-                         anchor='w',
-                         justify=tk.RIGHT)
-        label.grid(row=8,
-                   column=7)
-
-        self.depth_for_seeds_entry = tk.Entry(self,
-                                              width=5,
-                                              justify=tk.LEFT)
-        self.depth_for_seeds_entry.grid(row=8,
-                                        column=8)
 
         label = tk.Label(self,
                          text=" ")
         label.grid(row=9,
-                   column=5)
+                   column=1)
+
+        label = tk.Label(self,
+                         text="Space per Seedling, in inches:",
+                         anchor='e',
+                         justify=tk.RIGHT)
+        label.grid(row=9,
+                   column=2,
+                   columnspan=2)
+
+        self.space_per_seedling_entry = tk.Entry(self,
+                                                 width=5,
+                                                 justify=tk.LEFT)
+        self.space_per_seedling_entry.grid(row=9,
+                                           column=4)
+
+        label = tk.Label(self,
+                         text=" ")
+        label.grid(row=10,
+                   column=1)
+
+        label = tk.Label(self,
+                         text="Space per Seed Pack, in inches:",
+                         anchor='e',
+                         justify=tk.RIGHT)
+        label.grid(row=10,
+                   column=2,
+                   columnspan=2)
+
+        self.space_per_seedpack_entry = tk.Entry(self,
+                                                 width=5,
+                                                 justify=tk.LEFT)
+        self.space_per_seedpack_entry.grid(row=10,
+                                           column=4)
+
+        label = tk.Label(self,
+                         text="Depth Required per Plant, in inches:",
+                         anchor='e',
+                         justify=tk.RIGHT)
+        label.grid(row=9,
+                   column=5,
+                   columnspan=2)
+
+        self.depth_per_plant_entry = tk.Entry(self,
+                                              width=5,
+                                              justify=tk.LEFT)
+        self.depth_per_plant_entry.grid(row=9,
+                                        column=7)
+
+        label = tk.Label(self,
+                         text="Depth to Plant Seeds, inches, 2 decimals ok:",
+                         anchor='e',
+                         justify=tk.RIGHT)
+        label.grid(row=10,
+                   column=5,
+                   columnspan=2)
+
+        self.depth_for_seeds_entry = tk.Entry(self,
+                                              width=5,
+                                              justify=tk.LEFT)
+        self.depth_for_seeds_entry.grid(row=10,
+                                        column=7)
+
+        label = tk.Label(self,
+                         text=" ")
+        label.grid(row=11,
+                   column=1)
+
+        label = tk.Label(self,
+                         text=" ")
+        label.grid(row=12,
+                   column=1,
+                   columnspan=2)
+
+        label = tk.Label(self,
+                         text="Days to Harvest:",
+                         anchor='e',
+                         justify=tk.RIGHT)
+        label.grid(row=12,
+                   column=3)
+
+        self.days_to_harvest_entry = tk.Entry(self,
+                                              width=5,
+                                              justify=tk.LEFT)
+        self.days_to_harvest_entry.grid(row=12,
+                                        column=4)
+
+        label = tk.Label(self,
+                         text="Watering Frequency:")
+        label.grid(row=12,
+                   column=5,
+                   columnspan=1)
+        self.watering_requirement_combo = DropDown(self,
+                                                   watering_requirement_query,
+                                                   12,
+                                                   6,
+                                                   1,
+                                                   'W')
+
+
 
         self.new_plant = plant.Plant()
 
         button = tk.Button(self, text="Add Plant",
                            command=self.add_new_plant)
-        button.grid(row=10,
-                    column=5)
+        button.grid(row=12,
+                    column=7)
+
+        label = tk.Label(self,
+                         text="")
+        label.grid(row=13,
+                   column=3)
+
 
         button = tk.Button(self,
                            text="Exit to Main",
                            command=lambda: controller.show_frame(StartPage))
-        button.grid(row=10,
-                    column=6)
+        button.grid(row=14,
+                    column=7)
 
     def add_new_plant(self):
         self.plant_name = None
@@ -487,15 +523,15 @@ class DisplayPlants(tk.Frame):
                          font=LARGE_FONT)
         label.grid(row=1,
                    column=1,
-                   columnspan=9)
+                   columnspan=8)
 
         label = tk.Label(self,
                          text="Added new plants? Click to update the list: ",
                          anchor='e',
                          justify=tk.RIGHT)
         label.grid(row=1,
-                   column=10,
-                   columnspan=4)
+                   column=9,
+                   columnspan=3)
 
         button = tk.Button(self,
                            text="Regenerate List",  # UNSURE IF THIS IS WORKING, NEED TO TEST FULLY
@@ -503,7 +539,7 @@ class DisplayPlants(tk.Frame):
                            justify=tk.LEFT,
                            command=lambda: self.query_all_plants(controller))
         button.grid(row=1,
-                    column=13)
+                    column=12)
 
         label = tk.Label(self,
                          text=" ",
@@ -1227,19 +1263,34 @@ class AddPlotsPage(tk.Frame):
         cursor = this_connection.connection.cursor()  # set connection cursor
 
         last_record_id = None
-        row = 1
-        column = 1
+        plot_id = None
+        record_zone_id = None
+        last_row_zone = None
+
+
         cursor.execute(plot_data_query)
         records = cursor.fetchall()
         for r in records:
             last_record_id = r[0]
+            record_zone_id = r[6]
+            if last_record_id is None:
+                break
+            elif record_zone_id == self.zone_id:
+                last_row_zone = r[9]
+            else:
+                continue
+
         if last_record_id is None:
             plot_id = 1
+            row = 1
         else:
             plot_id = last_record_id + 1
-            if r[9] > row:
-                row = r[9]
+            if last_row_zone is None:
+                row = 1
+            else:
+                row = last_row_zone + 1
 
+        column = 1
         self.new_plot_list = []
 
         for id in range(self.total_plots):
@@ -1306,15 +1357,15 @@ class DisplayPlan(tk.Frame):
                          font=LARGE_FONT)
         label.grid(row=1,
                    column=1,
-                   columnspan=6)
+                   columnspan=8)
 
         label = tk.Label(self,
                          text="Click Here for Current Plan: ",
                          anchor='e',
                          justify=tk.RIGHT)
         label.grid(row=1,
-                   column=7,
-                   columnspan=4)
+                   column=9,
+                   columnspan=1)
 
         button = tk.Button(self,
                            text="Current Plan",
@@ -1322,7 +1373,7 @@ class DisplayPlan(tk.Frame):
                            justify=tk.LEFT,
                            command=lambda: self.query_plan(controller))
         button.grid(row=1,
-                    column=11)
+                    column=10)
 
         label = tk.Label(self,
                          text=" ",
