@@ -1,4 +1,4 @@
-import tkinter as tk  #see notes below on what needs fixing to add plant
+import tkinter as tk  #see notes below on what needs fixing to add plant FINISH FUNCTION TO ADD MANUAL PLAN
 import os
 from tkinter import ttk
 import data_connection  # manages connection to server
@@ -6,8 +6,6 @@ import plan
 import plant
 import plant_set
 import plot
-
-# SEE ISSUES IN COMMENTS, RELATED TO WINDOWS TO DISPLAY PLANTS AND PLANTING PLAN LISTS
 
 LARGE_FONT = ("Verdana", 12)
 MEDIUM_FONT = ("Verdana", 10)
@@ -27,6 +25,7 @@ add_zone_query = 'AddZone'
 measurement_unit_query = 'RetrieveMeasurementUnitData'
 plant_detail_query = 'QueryAllPlantsSetupDetail'
 planting_plan_query = 'QueryPlantingPlan'
+seasons_query = 'RetrieveMySeasonData'
 
 logo_file = "WelcomeLogo.png"
 icon_file = "Icon.png"
@@ -265,7 +264,6 @@ class AddPlantPage(tk.Frame):
         label.grid(row=4,
                    column=1)
 
-
         label = tk.Label(self,
                          text="Crop Rotation Group:")
         label.grid(row=5,
@@ -291,7 +289,7 @@ class AddPlantPage(tk.Frame):
                                               'W')
 
         label = tk.Label(self,
-                         text="",)
+                         text="", )
         label.grid(row=6,
                    column=1)
 
@@ -426,8 +424,6 @@ class AddPlantPage(tk.Frame):
                                                    1,
                                                    'W')
 
-
-
         self.new_plant = plant.Plant()
 
         button = tk.Button(self, text="Add Plant",
@@ -439,7 +435,6 @@ class AddPlantPage(tk.Frame):
                          text="")
         label.grid(row=13,
                    column=3)
-
 
         button = tk.Button(self,
                            text="Exit to Main",
@@ -615,7 +610,6 @@ class DisplayPlants(tk.Frame):
         self.query_all_plants(controller)
 
     def query_all_plants(self, controller):
-
         this_connection = data_connection.Connection()
         cursor = this_connection.connection.cursor()
 
@@ -649,9 +643,6 @@ class DisplayPlants(tk.Frame):
                            command=lambda: controller.show_frame(StartPage))
         button.grid(row=row_number + 2,
                     column=8)
-
-
-
 
     def reset_plant_dropdown(self):
         self.plant_combo = DropDown(self,
@@ -725,23 +716,182 @@ class GardenPlanPage(tk.Frame):
                                  column=4)
 
         button = tk.Button(self,
-                           text="Add to Plan",
+                           text="Add to Auto-Plan",
                            command=self.add)
         button.grid(row=4,
                     column=5,
                     sticky='E')
 
         button = tk.Button(self,
-                           text="Complete",
-                           command=lambda: self.complete)
+                           text="Complete Auto-Plan",
+                           command=self.complete)
         button.grid(row=5,
                     column=5,
                     sticky='E')
 
+        label = tk.Label(self,
+                         text="For Manual Plans Only")
+        label.grid(row=6,
+                   column=1,
+                   columnspan=2)
+
+        label = tk.Label(self,
+                         text="Select your Season:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=7,
+                   column=1,
+                   columnspan=2)
+
+        self.season_combo = DropDown(self,
+                                     seasons_query,
+                                     7,
+                                     3,
+                                     2,
+                                     'W')
+
+        self.plot_stat_list = []
+        top_plot_id = 1
+        top_zone_id = 1
+        top_row = 1
+        top_column = 1
+
+        this_connection = data_connection.Connection()
+        cursor = this_connection.connection.cursor()
+
+        cursor.execute(plot_data_query)
+        records = cursor.fetchall()
+        for r in records:
+            plot_id = r[0]
+            plot_size = r[1]
+            measurement_unit_id = r[2]
+            is_container = r[3]
+            container_depth = r[4]
+            plot_nitrogen_level = r[5]
+            zone_id = r[6]
+            sun_id = r[7]
+            soil_moisture_id = r[8]
+            plot_row = r[9]
+            plot_column = r[10]
+            plot_active = r[11]
+
+            self.this_plot = plot.Plot()
+            self.this_plot.set_plot_values(
+                plot_id,
+                plot_size,
+                measurement_unit_id,
+                is_container,
+                container_depth,
+                plot_nitrogen_level,
+                zone_id,
+                sun_id,
+                soil_moisture_id,
+                plot_row,
+                plot_column,
+                plot_active)
+
+            self.plot_stat_list.append(self.this_plot)
+
+            if r[11] == 0:
+                continue
+            else:
+                if r[0] > top_plot_id:  # add a popup with message to create plots first if no plots are set up yet
+                    top_plot_id = r[0]
+
+                if r[6] is None:
+                    continue
+                else:
+                    if r[6] > top_zone_id:
+                        top_zone_id = r[6]
+
+                if r[9] is None:
+                    continue
+                else:
+                    if r[9] > top_row:
+                        top_row = r[9]
+
+                if r[10] is None:
+                    continue
+                else:
+                    if r[10] > top_column:
+                        top_column = r[10]
+
+        label = tk.Label(self,
+                         text="Select Plot ID Number:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=8,
+                   column=1,
+                   columnspan=2)
+
+        self.plot_spinbox = tk.Spinbox(self,
+                                       from_=0,
+                                       to=top_plot_id)
+        self.plot_spinbox.grid(row=8,
+                               column=3)
+
+        label = tk.Label(self,
+                         text="Or Select Zone, Row and Column below",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=8,
+                   column=5,
+                   columnspan=3)
+
+        button = tk.Button(self,
+                           text="Check Plot / Instant Add",
+                           command=self.add_manual_set)
+        button.grid(row=10,
+                    column=3,
+                    sticky='E')
+
+        label = tk.Label(self,
+                         text="Select Zone:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=9,
+                   column=5,
+                   columnspan=2)
+
+        self.zone_combo = DropDown(self,
+                                   zone_query,
+                                   9,
+                                   7,
+                                   2,
+                                   'W')
+
+        label = tk.Label(self,
+                         text="Select Row Number:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=10,
+                   column=5,
+                   columnspan=2)
+
+        self.row_spinbox = tk.Spinbox(self,
+                                      from_=0,
+                                      to=top_row)
+        self.row_spinbox.grid(row=10,
+                              column=7)
+
+        label = tk.Label(self,
+                         text="Select Column Number:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=11,
+                   column=5,
+                   columnspan=2)
+
+        self.col_spinbox = tk.Spinbox(self,
+                                      from_=0,
+                                      to=top_column)
+        self.col_spinbox.grid(row=11,
+                              column=7)
+
         button = tk.Button(self,
                            text="Exit to Main",
                            command=lambda: controller.show_frame(StartPage))
-        button.grid(row=6,
+        button.grid(row=13,
                     column=3,
                     sticky='E')
 
@@ -782,7 +932,7 @@ class GardenPlanPage(tk.Frame):
                    column=1,
                    sticky='E')
 
-    def complete(self, parent, controller):
+    def complete(self):
         this_connection = data_connection.Connection()
         cursor = this_connection.connection.cursor()
 
@@ -826,7 +976,56 @@ class GardenPlanPage(tk.Frame):
 
         self.new_plan.display_plant_set_list()
 
-        controller.show_frame(DisplayPlan)          # THIS DOES NOT WORK, NEED TO FIGURE OUT WHY OR MAKE A BUTTON
+    def add_manual_set(self):
+
+        self.set_quantity = None
+        self.fixed_location = None
+        self.plant_id = None
+        self.my_season_id = None
+        self.set_plot_id = None
+        self.set_type_id = None
+        self.zone_id = None
+        self.row = None
+        self.column = None
+
+        self.set_quantity = self.quantity_entry.get()
+        self.set_plot_id = self.plot_spinbox.get()
+        self.row = self.row_spinbox.get()
+        self.column = self.col_spinbox.get()
+
+        plant = self.plant_combo.selection
+        self.plant_id = self.plant_combo.get_id(plant_name_query,
+                                                plant)
+
+        set_type = self.set_type_combo.selection
+        self.set_type_id = self.set_type_combo.get_id(set_type_query,
+                                                      set_type)
+        set_season = self.season_combo.selection
+        self.my_season_id = self.season_combo.get_id(seasons_query,
+                                                     set_season)
+
+        zone = self.zone_combo.selection
+        self.zone_id = self.zone_combo.get_id(zone_query,
+                                              zone)
+
+        self.new_plant_set = plant_set.PlantSet()
+        self.new_plant_set.add_new_plant_set(self.plant_id,
+                                             self.set_type_id,
+                                             self.set_quantity)
+
+        print(self.my_season_id)
+        print(self.set_plot_id)
+        print(self.zone_id)
+        print(self.row)
+        print(self.column)
+
+        this_manual_plan = plan.Plan()
+        this_manual_plan.manual_plan(self.new_plant_set,
+                                     self.my_season_id,
+                                     self.set_plot_id,
+                                     self.zone_id,
+                                     self.row,
+                                     self.column)
 
     def reset_plant_dropdown(self):
         self.plant_combo = DropDown(self,
@@ -1161,14 +1360,15 @@ class AddPlotsPage(tk.Frame):
                    column=1)
 
         self.is_container = tk.IntVar()
-        self.is_container_checkbox = (tk.Checkbutton(self,
-                                                     text="Is this plot a container (solid bottom)?",
-                                                     variable=self.is_container,
-                                                     onvalue=1,
-                                                     offvalue=0,
-                                                     width=40,
-                                                     justify=tk.LEFT,
-                                                     anchor='w'))
+        self.is_container_checkbox \
+            = (tk.Checkbutton(self,
+                              text="Is this plot a container (solid bottom)?",
+                              variable=self.is_container,
+                              onvalue=1,
+                              offvalue=0,
+                              width=40,
+                              justify=tk.LEFT,
+                              anchor='w'))
         self.is_container_checkbox.grid(row=7,
                                         column=2,
                                         columnspan=3)
@@ -1267,7 +1467,6 @@ class AddPlotsPage(tk.Frame):
         record_zone_id = None
         last_row_zone = None
 
-
         cursor.execute(plot_data_query)
         records = cursor.fetchall()
         for r in records:
@@ -1345,7 +1544,6 @@ class AddPlotsPage(tk.Frame):
                                    3,
                                    2,
                                    'W')
-
 
 
 class DisplayPlan(tk.Frame):
@@ -1429,7 +1627,6 @@ class DisplayPlan(tk.Frame):
         self.query_plan(controller)
 
     def query_plan(self, controller):
-
         this_connection = data_connection.Connection()
         cursor = this_connection.connection.cursor()
 
@@ -1446,7 +1643,6 @@ class DisplayPlan(tk.Frame):
             tk.Label(self, text=str(row[8])).grid(column=9, row=row_number)
             tk.Label(self, text=str(row[9])).grid(column=10, row=row_number)
 
-
         this_connection.end_connection()
 
         label = tk.Label(self,
@@ -1459,11 +1655,6 @@ class DisplayPlan(tk.Frame):
                            command=lambda: controller.show_frame(StartPage))
         button.grid(row=row_number + 2,
                     column=8)
-
-
-
-
-
 
 
 app = Window()
