@@ -450,6 +450,8 @@ class Plan:
 
             print("plot ID is: " + str(plot_id))
 
+        # create a new plot to check with the data entered
+
         self.plot_to_check = self.get_plot(this_plot_id,
                                            this_row,
                                            this_column,
@@ -484,7 +486,7 @@ class Plan:
             self.this_plant_set.export_plant_set(crop_quantity,
                                                 this_plant_id,
                                                 this_season_id,
-                                                this_plot_id,
+                                                self.plot_to_check.plot_id,
                                                 crop_set_type)
             self.plot_to_check.plot_status = 'taken'
 
