@@ -26,6 +26,7 @@ measurement_unit_query = 'RetrieveMeasurementUnitData'
 plant_detail_query = 'QueryAllPlantsSetupDetail'
 planting_plan_query = 'QueryPlantingPlan'
 seasons_query = 'RetrieveMySeasonData'
+display_grid_query = 'QueryPlotGrid'
 
 logo_file = "WelcomeLogo.png"
 icon_file = "Icon.png"
@@ -96,6 +97,7 @@ class Window(tk.Tk):
 
         for F in (StartPage,
                   AddPlantPage,
+                  EditSetPage,
                   DisplayPlants,
                   DisplayPlan,
                   GardenPlanPage,
@@ -142,17 +144,25 @@ class StartPage(tk.Frame):
 
         button = tk.Button(self,
                            width=30,
+                           text="Garden Setup",
+                           command=lambda: controller.show_frame(SetupPage))
+        button.grid(row=2,
+                    column=1,
+                    sticky='E')
+
+        button = tk.Button(self,
+                           width=30,
                            text="Add Plant",
                            command=lambda: controller.show_frame(AddPlantPage))
         button.grid(row=2,
-                    column=1,
+                    column=2,
                     sticky='W')
 
         button = tk.Button(self,
                            width=30,
                            text="Plant Information",
                            command=lambda: controller.show_frame(DisplayPlants))
-        button.grid(row=2, column=2, sticky='E')
+        button.grid(row=3, column=2, sticky='E')
 
         button = tk.Button(self,
                            width=30,
@@ -164,18 +174,18 @@ class StartPage(tk.Frame):
 
         button = tk.Button(self,
                            width=30,
-                           text="Garden Setup",
-                           command=lambda: controller.show_frame(SetupPage))
+                           text="Edit Plant Set",
+                           command=lambda: controller.show_frame(EditSetPage))
         button.grid(row=3,
-                    column=2,
+                    column=3,
                     sticky='E')
 
         button = tk.Button(self,
                            width=30,
                            text="View Garden Plan",
                            command=lambda: controller.show_frame(DisplayPlan))
-        button.grid(row=3,
-                    column=3,
+        button.grid(row=2,
+                    column=4,
                     sticky='E')
 
         button = tk.Button(self,
@@ -197,7 +207,7 @@ class AddPlantPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         label = (tk.Label
                  (self,
-                  text="Add / Edit Plant",
+                  text="Add Plant",
                   font=LARGE_FONT))
         label.grid(row=1,
                    column=2,
@@ -1036,6 +1046,353 @@ class GardenPlanPage(tk.Frame):
                                     'W')
 
 
+class EditSetPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self,
+                         text="Edit Plant Set",
+                         font=LARGE_FONT)
+        label.grid(row=1,
+                   column=2)
+
+        label = tk.Label(self,
+                         text=" ")
+        label.grid(row=2,
+                   column=1,
+                   columnspan=5)
+
+        self.set_default_values(controller)
+
+    def set_default_values(self, controller):
+
+        label = tk.Label(self,
+                         text="Select Plant Name:")
+        label.grid(row=3,
+                   column=1,
+                   columnspan=1)
+
+        self.plant_combo = DropDown(self,
+                                    planting_plan_query,
+                                    3,
+                                    2,
+                                    2,
+                                    'W')
+
+        label = tk.Label(self,
+                         text="Season:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=3,
+                   column=4,
+                   columnspan=1)
+
+        self.season_combo = DropDown(self,
+                                     seasons_query,
+                                     3,
+                                     5,
+                                     1,
+                                     'W')
+
+        button = tk.Button(self,
+                           text="Search",
+                           command=self.import_plant_set,
+                           width=10)
+        button.grid(row=3,
+                    column=6,
+                    sticky='E')
+
+        self.search_error = tk.Label(self)
+
+        label = tk.Label(self,
+                         text="Plant Set ID:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=4,
+                   column=1,
+                   columnspan=1)
+
+        self.plant_set_id = 0
+
+        label = tk.Label(self,
+                         text=self.plant_set_id)
+        label.grid(row=4,
+                   column=2)
+
+        label = tk.Label(self,
+                         text="Set Type:")
+        label.grid(row=4,
+                   column=4)
+
+        self.set_type_combo = DropDown(self,
+                                       set_type_query,
+                                       4,
+                                       5,
+                                       1,
+                                       'W')
+
+        label = tk.Label(self,
+                         text="Quantity:")
+        label.grid(row=4,
+                   column=6)
+        self.quantity_entry = tk.Entry(self,
+                                       width=5)
+        self.quantity_entry.grid(row=4,
+                                 column=7)
+
+        label = tk.Label(self,
+                         text="Plot ID Number:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=5,
+                   column=1,
+                   columnspan=1)
+
+        self.plot_id = '0'
+
+        self.plot_entry = tk.Entry(self,
+                                   width=5)
+        self.plot_entry.grid(row=5,
+                             column=2)
+        self.plot_entry.insert(0, self.plot_id)
+
+        label = tk.Label(self,
+                         text=" ")
+        label.grid(row=7,
+                   column=1)
+
+        label = (tk.Label
+                 (self,
+                  text="Plant Set Notes (Optional):"))
+        label.grid(row=7,
+                   column=2,
+                   columnspan=2)
+
+        self.set_notes_text = tk.Text(self,
+                                      height=3,
+                                      width=30)
+        self.set_notes_text.grid(row=7,
+                                 column=4,
+                                 columnspan=2)
+
+        label = tk.Label(self,
+                         text="Date Planted:")
+        label.grid(row=6,
+                   column=6,
+                   columnspan=2)
+        self.date_planted_entry = tk.Entry(self,
+                                           width=10)
+        self.date_planted_entry.grid(row=6,
+                                     column=8)
+
+        label = tk.Label(self,
+                         text="First Harvest Date (MM/DD/YY):")
+        label.grid(row=7,
+                   column=6,
+                   columnspan=2)
+        self.first_harvest_entry = tk.Entry(self,
+                                            width=10)
+        self.first_harvest_entry.grid(row=7,
+                                      column=8)
+
+        label = tk.Label(self,
+                         text="Last Harvest Date (MM/DD/YY)")
+        label.grid(row=8,
+                   column=6,
+                   columnspan=2)
+        self.last_harvest_entry = tk.Entry(self,
+                                           width=10)
+        self.last_harvest_entry.grid(row=8,
+                                     column=8)
+
+        def select_radio():
+            self.radio_selection = outcome_radio_entry.get()
+            print(self.radio_selection)
+
+        label = tk.Label(self,
+                         text="Outcome:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=9,
+                   column=5)
+
+        outcome_radio_entry = tk.IntVar()
+        self.radio_selection = None
+
+        self.radio1 = tk.Radiobutton(self, text="Pending", variable=outcome_radio_entry, value=9, command=select_radio)
+        self.radio1.grid(row=9,
+                         column=6)
+
+        self.radio2 = tk.Radiobutton(self, text="Success", variable=outcome_radio_entry, value=1, command=select_radio)
+        self.radio2.grid(row=9,
+                         column=7)
+
+        self.radio3 = tk.Radiobutton(self, text="Failure", variable=outcome_radio_entry, value=0, command=select_radio)
+        self.radio3.grid(row=9,
+                         column=8)
+
+        self.radio1.select()
+
+        button = tk.Button(self,
+                           text="Save Changes",
+                           command=self.export_edited_set)
+        button.grid(row=13,
+                    column=3,
+                    sticky='E')
+
+        button = tk.Button(self,
+                           text="Exit to Main",
+                           command=lambda: controller.show_frame(StartPage))
+
+        button.grid(row=13,
+                    column=7,
+                    sticky='E')
+
+        self.plant_name = None
+        self.season_text = None
+        # plant_set_id set further up
+
+    def import_plant_set(self):
+
+        self.saved_plant_set = plant_set.PlantSet()
+        plant_selection = self.plant_combo.selection
+        season_selection = self.season_combo.selection
+
+        q_plant_set_id = self.saved_plant_set.import_plant_set(plant_selection,
+                                                               season_selection)
+
+        if q_plant_set_id is None:
+
+            self.search_error = tk.Label(self,
+                                         text="Plant Not Found")
+            self.search_error.grid(row=3,
+                                   column=7)
+            print('not found')
+        else:
+
+            print(self.plant_set_id)
+
+        if q_plant_set_id is not None:
+            self.reset_values()
+        else:
+            self.set_default_values()
+
+    def reset_values(self):
+
+        # probably should change to a popup if not found above, and omit this
+        self.search_error = tk.Label(self,
+                                     text="                            ")
+        self.search_error.grid(row=3,
+                               column=7)
+
+        label = tk.Label(self,
+                         text=self.saved_plant_set.plant_set_id)
+        label.grid(row=4,
+                   column=2)
+
+        self.set_type_combo.combo.set(self.saved_plant_set.set_type)
+
+        self.quantity_entry.delete(0, 'end')
+        self.quantity_entry.insert(0, self.saved_plant_set.set_quantity)
+
+        self.plot_entry.delete(0, 'end')
+        self.plot_entry.insert(0, self.saved_plant_set.plot_id)
+
+        self.set_notes_text.delete(1.0, 'end')
+        if self.saved_plant_set.plant_set_notes is not None:
+            self.set_notes_text.insert(1.0, self.saved_plant_set.plant_set_notes)
+
+        self.date_planted_entry.delete(0, 'end')
+        if self.saved_plant_set.planted_date is not None:
+            self.date_planted_entry.insert(0, self.saved_plant_set.planted_date)
+
+        self.first_harvest_entry.delete(0, 'end')
+        if self.saved_plant_set.first_harvest_date is not None:
+            self.first_harvest_entry.insert(0, self.saved_plant_set.first_harvest_date)
+
+        self.last_harvest_entry.delete(0, 'end')
+        if self.saved_plant_set.last_harvest_date is not None:
+            self.last_harvest_entry.insert(0, self.saved_plant_set.last_harvest_date)
+
+        if self.saved_plant_set.outcome == 1:
+            self.radio2.select()
+        elif self.saved_plant_set.outcome == 0:
+            self.radio3.select()
+        else:
+            self.radio1.select()
+
+    def export_edited_set(self):
+
+        plant = self.plant_combo.selection
+        self.plant_id = self.plant_combo.get_id(plant_name_query,
+                                                plant)
+
+        set_season = self.season_combo.selection
+        self.season_id = self.season_combo.get_id(seasons_query,
+                                                  set_season)
+
+        if self.season_id is None:
+            this_connection = data_connection.Connection()  # connect to server
+            cursor = this_connection.connection.cursor()  # set connection cursor
+            cursor.execute(seasons_query)
+            records = cursor.fetchall()
+            for r in records:
+                if self.saved_plant_set.season_text == r[1]:
+                    self.season_id = r[0]
+
+        self.set_quantity = self.quantity_entry.get()
+
+        self.plot_id = self.plot_entry.get()
+
+        set_type = self.set_type_combo.selection
+        self.set_type_id = self.set_type_combo.get_id(set_type_query,
+                                                      set_type)
+        if self.set_type_id is None:
+            this_connection = data_connection.Connection()  # connect to server
+            cursor = this_connection.connection.cursor()  # set connection cursor
+            cursor.execute(set_type_query)
+            records = cursor.fetchall()
+            for r in records:
+                if self.saved_plant_set.set_type == r[1]:
+                    self.set_type_id = r[0]
+
+        self.set_notes = self.set_notes_text.get(1.0, 'end')
+        self.planted_date = self.date_planted_entry.get()
+        if self.planted_date == "":
+            self.planted_date = None
+        self.first_harvest_date = self.first_harvest_entry.get()
+        if self.first_harvest_date == "":
+            self.first_harvest_date = None
+        self.last_harvest_date = self.last_harvest_entry.get()
+        if self.last_harvest_date == "":
+            self.last_harvest_date = None
+
+        if self.radio_selection is None:
+            self.outcome = self.saved_plant_set.outcome
+
+        elif self.radio_selection == 9:
+            self.outcome = None
+        else:
+            self.outcome = self.radio_selection
+
+        self.updated_set = plant_set.PlantSet()
+
+        print('hello1')
+
+        self.updated_set.export_updated_set(  # seems that season ID, plot ID, plant set ID is None
+            self.saved_plant_set.plant_set_id,
+            self.set_quantity,
+            self.planted_date,
+            self.first_harvest_date,
+            self.last_harvest_date,
+            self.outcome,
+            self.plant_id,
+            self.season_id,
+            self.plot_id,
+            self.set_type_id,
+            self.set_notes)
+
+
 class SetupPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -1558,6 +1915,143 @@ class DisplayPlan(tk.Frame):
                    columnspan=8)
 
         label = tk.Label(self,
+                         text=" ",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=2,
+                   column=1)
+
+        label = tk.Label(self,
+                         text="Select your Season:",
+                         justify=tk.RIGHT,
+                         anchor='e')
+        label.grid(row=3,
+                   column=1,
+                   columnspan=2)
+
+        self.season_combo = DropDown(self,
+                                     seasons_query,
+                                     3,
+                                     3,
+                                     2,
+                                     'W')
+
+        tk.Label(self,
+                 text=" ").grid(row=3,
+                                column=5)
+
+        button = tk.Button(self, text="View Plan for Season",
+                           command=self.view_season_plan)
+        button.grid(row=3,
+                    column=6)
+
+        tk.Label(self,
+                 text=" ").grid(row=3,
+                                column=7)
+
+        button = tk.Button(self,
+                           text="Exit to Main",
+                           command=lambda: controller.show_frame(StartPage))
+
+        button.grid(row=3,
+                    column=8)
+
+    def reset_grid(self):
+        for label in self.winfo_children():
+            if type(label) == tk.Label:
+                label.destroy()
+
+    def view_season_plan(self):
+
+        self.reset_grid()
+
+        tk.Label(self,
+                 text="Current Garden Plan",
+                 font=LARGE_FONT).grid(row=1,
+                                       column=1,
+                                       columnspan=8)
+
+        tk.Label(self,
+                 text=" ",
+                 justify=tk.RIGHT,
+                 anchor='e').grid(row=2,
+                                  column=1)
+
+        self.set_season_id()
+        self.query_grid(display_grid_query, self.season_id)
+
+    def set_season_id(self):
+        season = self.season_combo.selection
+
+        if season is None:
+            tk.Label(self,
+                     text="No Season Selected").grid(row=4,
+                                                     column=2)
+        self.season_id = self.season_combo.get_id(seasons_query, season)
+
+    def query_grid(self, display_grid_query, season_id):
+        this_connection = data_connection.Connection()
+        cursor = this_connection.connection.cursor()
+
+        cursor.execute(display_grid_query + ' ?', [season_id])
+
+        zone = ''
+        max_row = 0
+        last_row = 6
+        max_column = 0
+
+        tk.Label(self, text=" ").grid(column=1,
+                                      row=4)
+
+        for row_number, data_row in enumerate(cursor):  # query is sorted by zones already
+            current_zone = data_row[0]
+            current_row = data_row[2]
+            current_column = data_row[3] + 1
+            current_plant = data_row[5]
+
+            print(max_row)
+            print(max_column)
+            print(last_row)
+            print(current_zone)
+
+            if zone == '':
+                tk.Label(self, text=str(current_zone)).grid(column=1, row=last_row)
+            elif zone != current_zone:
+                last_row = last_row + max_row + 1
+                tk.Label(self, text=' ').grid(column=1, row=last_row)
+                last_row = last_row + 1
+                tk.Label(self, text=str(current_zone)).grid(column=1, row=last_row)
+                max_row = 0
+            else:
+                if current_row > max_row:
+                    max_row = current_row
+
+            tk.Label(self, text=str(current_plant)).grid(column=current_column, row=current_row + last_row)
+            tk.Label(self, text='Row ' + str(current_row)).grid(column=1, row=current_row + last_row)
+
+            if current_column >= max_column:
+                max_column = current_column
+
+            zone = current_zone
+
+        for column in range(1, max_column):
+            tk.Label(self, text='Column ' + str(column)).grid(column=column + 1, row=5)
+
+        this_connection.end_connection()
+
+
+class PlantingPlanReport(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        label = tk.Label(self,
+                         text="Current Garden Plan",
+                         font=LARGE_FONT)
+        label.grid(row=1,
+                   column=1,
+                   columnspan=8)
+
+        label = tk.Label(self,
                          text="Click Here for Current Plan: ",
                          anchor='e',
                          justify=tk.RIGHT)
@@ -1580,12 +2074,12 @@ class DisplayPlan(tk.Frame):
                    column=2)
 
         label = tk.Label(self,
-                         text="Season")
+                         text="Plant")
         label.grid(row=3,
                    column=2)
 
         label = tk.Label(self,
-                         text="Plant")
+                         text="Season")
         label.grid(row=3,
                    column=3)
 
