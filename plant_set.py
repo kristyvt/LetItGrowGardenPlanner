@@ -71,9 +71,10 @@ class PlantSet:
 
     def import_plant_set(self,
                          plant_selection,
-                         season_selection):
+                         season_selection,
+                         q_plant_set_id):
 
-        q_plant_set_id = 0
+
 
         self.plant_name = plant_selection
         self.season_text = season_selection
@@ -150,8 +151,6 @@ class PlantSet:
         self.last_harvest_date = last_harvest_date
         self.outcome = bool(outcome)
         self.plant_set_notes = plant_set_notes
-
-        print('hello')
 
         this_connection = data_connection.Connection()  # connect to server
         cursor = this_connection.connection.cursor()  # set connection cursor
