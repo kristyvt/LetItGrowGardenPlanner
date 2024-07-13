@@ -7,6 +7,7 @@ planting_plan_query = 'QueryPlantingPlan'
 plant_requirements_query = 'RetrievePlantRequirements'
 seasons_query = 'RetrieveMySeasonData'
 plot_data_query = 'RetrievePlotData'
+last_season_plot_query = 'QueryLastSeasonPlot'
 
 
 class Plan:
@@ -230,6 +231,8 @@ class Plan:
 
         self.generate_master_plant_list()
 
+        self.assigned_plant_ids = []
+
         for plant in self.plant_set_list:
 
             this_plant_id = plant.plant_id
@@ -263,19 +266,6 @@ class Plan:
                     total_times_planted = p.total_times_planted
                     times_succeeded = p.times_succeeded
 
-            print(space_required_seedling)
-            print(space_required_seeds)
-            print(depth_requirement)
-            print(sun_id)
-            print(soil_moisture_id)
-            print(crop_nitrogen_level)
-            print(always_include)
-            print(plant_in_spring)
-            print(plant_in_fall)
-            print(frost_tolerance_id)
-            print(total_times_planted)
-            print(times_succeeded)
-
             self.plot_status = None
             self.plant_status = None
 
@@ -283,17 +273,28 @@ class Plan:
             cursor = this_connection.connection.cursor()
 
             season_list = []
+
             cursor.execute(seasons_query)
             records = cursor.fetchall()
             for r in records:
-                this_season_id = r[0]
-                season_list.append(this_season_id)
+                season_active = r[3]
+                if season_active is True:
+                    this_season_id = r[0]
+                    season_list.append(this_season_id)
             print(season_list)
 
             for season in season_list:
 
                 for plot in self.plot_list:
-                    plot.plot_status = None
+                    plot.plot_status = None  # status to track whether empty or taken
+
+                    # update nitrogen level each season
+                    # may change plant levels unless I can make this annual
+                    # also need to see how this works with multiple plants
+                    # will it reset which is correct, or keep adding on
+
+                    plot.plot_nitrogen_level = plot.plot_nitrogen_level + 1
+                    print("Plot Nitrogen Level after season adjustment is: " + str(plot.plot_nitrogen_level))
 
                 if self.plant_status == 'assigned':
                     break
@@ -301,21 +302,71 @@ class Plan:
 
                     for plot in self.plot_list:
 
-                        if self.is_empty(plot, season) and self.check_requirements(crop_nitrogen_level,
-                                                                                   plot.plot_nitrogen_level,
-                                                                                   sun_id,
-                                                                                   plot.sun_id,
-                                                                                   soil_moisture_id,
-                                                                                   plot.soil_moisture_id,
-                                                                                   space_required_seedling,
-                                                                                   space_required_seeds,
-                                                                                   plot.plot_size,
-                                                                                   plot.measurement_unit_id,
-                                                                                   crop_quantity,
-                                                                                   crop_set_type,
-                                                                                   plot.is_container,
-                                                                                   depth_requirement,
-                                                                                   plot.container_depth):
+                        self.prior_plant_id = None
+                        self.prior_plant_name = None
+                        self.prior_crop_nitrogen = None
+                        self.prior_season_active = None
+
+                        # what do we do at each plot?
+
+                        # check the plan for previous year
+                        # update nitrogen  levels of plot based on what was planted there
+                        #query the plan for the plant ID
+                        #look up nitrogen for plant
+                        #add plant nitrogen use to plot nitrogen level
+                        # before checking if it meets requirements below
+
+                        # if the spot isn't empty, look up the info for the plant that is there
+                        # and adjust the nitrogen level of the plot accordingly for the next round
+                        # maybe change isempty to update a variable with the current plant info
+                        # to look up the nitrogen, or just have it update it within the function.
+
+                        this_connection = data_connection.Connection()
+                        cursor = this_connection.connection.cursor()
+
+                        (cursor.execute
+                         (last_season_plot_query + ' ?, ?',
+                          [plot.plot_id,
+                           season]))
+
+                        records = cursor.fetchall()
+                        for r in records:
+                            self.prior_plant_id = r[0]
+                            if self.prior_plant_id is not None:
+                                self.prior_plant_name = r[1]
+                                self.prior_crop_nitrogen = r[2]
+                                self.prior_season_active = r[3]
+
+                                print('prior crop name is ' + self.prior_plant_name)
+
+                                if self.prior_season_active is True:
+                                    plot.plot_nitrogen_level = plot.plot_nitrogen_level + self.prior_crop_nitrogen
+                                    print("Plot Nitrogen Level after crop adjustment is: " + str(
+                                        plot.plot_nitrogen_level))
+                                    print("Crop is: " + self.prior_plant_name)
+
+                                else:
+                                    print('prior season not active')
+
+                        if self.prior_plant_id is not None:
+                            if this_plant_id == self.prior_plant_id:
+                                continue
+
+                        elif self.is_empty(plot, season) and self.check_requirements(crop_nitrogen_level,
+                                                                                     plot.plot_nitrogen_level,
+                                                                                     sun_id,
+                                                                                     plot.sun_id,
+                                                                                     soil_moisture_id,
+                                                                                     plot.soil_moisture_id,
+                                                                                     space_required_seedling,
+                                                                                     space_required_seeds,
+                                                                                     plot.plot_size,
+                                                                                     plot.measurement_unit_id,
+                                                                                     crop_quantity,
+                                                                                     crop_set_type,
+                                                                                     plot.is_container,
+                                                                                     depth_requirement,
+                                                                                     plot.container_depth):
                             for p in self.plant_set_list:
                                 print('plant in list is ' + str(p.plant_id))
                                 print('plant to check is ' + str(this_plant_id))
@@ -328,6 +379,7 @@ class Plan:
                                                        p.my_season_id,
                                                        p.plot_id,
                                                        p.set_type_id)
+                                    self.assigned_plant_ids.append(p.plant_id)
                                     plot.plot_status = 'taken'
                                     self.plant_status = 'assigned'
                                     break
@@ -336,6 +388,21 @@ class Plan:
                         else:
                             continue
 
+        if self.assigned_plant_ids:
+            assigned_plant_names = []
+            for assigned_plant_id in self.assigned_plant_ids:
+                for plant in self.master_plant_list:
+                    if plant.plant_id == assigned_plant_id:
+                        assigned_plant_names.append(plant.plant_name)
+
+            message = ("The following plants have been assigned to plots:\n"
+                       + ('\n '.join(assigned_plant_names)) +
+                       "\n If any are not listed, no suitable plot was found.")
+        else:
+            message = "No suitable plots found for selected plants"
+
+        return message
+
     def manual_plan(self,
                     new_plant_set,
                     season_id,
@@ -343,8 +410,6 @@ class Plan:
                     zone_id,
                     row,
                     column):
-
-        print('start manual')
 
         self.this_plant_set = new_plant_set
 
@@ -370,6 +435,7 @@ class Plan:
         else:
             this_column = 0
 
+        self.plant_name = None
         space_required_seedling = None
         space_required_seeds = None
         depth_requirement = None
@@ -385,6 +451,10 @@ class Plan:
 
         self.generate_master_plant_list()
 
+        for plant in self.master_plant_list:
+            if plant.plant_id == this_plant_id:
+                self.plant_name = plant.plant_name
+
         for p in self.master_plant_list:
             if p.plant_id == this_plant_id:
                 space_required_seedling = p.space_required_seedling
@@ -399,19 +469,6 @@ class Plan:
                 frost_tolerance_id = p.frost_tolerance_id
                 total_times_planted = p.total_times_planted
                 times_succeeded = p.times_succeeded
-
-        print(space_required_seedling)
-        print(space_required_seeds)
-        print(depth_requirement)
-        print(sun_id)
-        print(soil_moisture_id)
-        print(crop_nitrogen_level)
-        print(always_include)
-        print(plant_in_spring)
-        print(plant_in_fall)
-        print(frost_tolerance_id)
-        print(total_times_planted)
-        print(times_succeeded)
 
         this_connection = data_connection.Connection()
         cursor = this_connection.connection.cursor()
@@ -458,7 +515,10 @@ class Plan:
                                            this_column,
                                            this_zone_id)
 
-        self.plot_to_check.display_plot()
+        if self.plot_to_check is None:
+            error_message = ("Selected plot does not exist.\n"
+                             "Please choose a valid plot.")
+            return error_message
 
         self.plot_to_check.plot_status = None
 
@@ -491,10 +551,12 @@ class Plan:
                                                  crop_set_type)
             self.plot_to_check.plot_status = 'taken'
 
-            print('export complete')
+            message = self.plant_name + " added to plot " + str(this_plot_id)
 
         else:
-            print('failed checks. not exported')
+            message = 'Failed checks, ' + self.plant_name + ' not added to plan'
+
+        return message
 
     def get_plot(self,
                  this_plot_id,
@@ -521,12 +583,10 @@ class Plan:
                 else:
                     continue
 
-
-
     def edited_plan_checks(self,
-                    edited_plant_set,
-                    season_id,
-                    plot_id,
+                           edited_plant_set,
+                           season_id,
+                           plot_id,
                            plot_change):
 
         print('start editing')
@@ -537,7 +597,6 @@ class Plan:
         crop_quantity = self.this_plant_set.set_quantity
         crop_set_type = self.this_plant_set.set_type_id
         this_season_id = season_id
-
 
         this_plot_id = int(plot_id)
 
@@ -649,24 +708,24 @@ class Plan:
                 return self.this_plant_set
 
             else:
-                print('failed checks. not exported')
+                return None
 
         if plot_change == 'N':
             if (self.check_requirements(crop_nitrogen_level,
-                                    self.plot_to_check.plot_nitrogen_level,
-                                    sun_id,
-                                    self.plot_to_check.sun_id,
-                                    soil_moisture_id,
-                                    self.plot_to_check.soil_moisture_id,
-                                    space_required_seedling,
-                                    space_required_seeds,
-                                    self.plot_to_check.plot_size,
-                                    self.plot_to_check.measurement_unit_id,
-                                    crop_quantity,
-                                    crop_set_type,
-                                    self.plot_to_check.is_container,
-                                    depth_requirement,
-                                    self.plot_to_check.container_depth)):
+                                        self.plot_to_check.plot_nitrogen_level,
+                                        sun_id,
+                                        self.plot_to_check.sun_id,
+                                        soil_moisture_id,
+                                        self.plot_to_check.soil_moisture_id,
+                                        space_required_seedling,
+                                        space_required_seeds,
+                                        self.plot_to_check.plot_size,
+                                        self.plot_to_check.measurement_unit_id,
+                                        crop_quantity,
+                                        crop_set_type,
+                                        self.plot_to_check.is_container,
+                                        depth_requirement,
+                                        self.plot_to_check.container_depth)):
 
                 self.this_plant_set.add_plot_id(this_plot_id)
                 self.this_plant_set.add_season_id(this_season_id)
@@ -677,6 +736,3 @@ class Plan:
 
             else:
                 print('failed checks. not exported')
-
-
-

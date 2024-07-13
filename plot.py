@@ -99,6 +99,4 @@ class Plot:
         this_connection.end_connection()
 
     def get_plot(self, this_plot_id, plot_row, plot_column, this_zone_id):
-
-
         pass

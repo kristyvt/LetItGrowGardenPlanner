@@ -92,11 +92,13 @@ class Plant:
 
         cursor.commit()  # finalize entry into table
 
-        print('Finished Inserting ' + self.plant_name)  # confirmation
+        success_message = 'Finished Inserting ' + self.plant_name
 
         self.display_plant()
 
         this_connection.end_connection()
+
+        return success_message
 
     def display_plant(self):
         print(self.__dict__)  # mostly for testing, DELETE before submission
