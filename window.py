@@ -131,6 +131,7 @@ class Window(tk.Tk):
                   SetupPage,
                   AddZonesPage,
                   AddPlotsPage,
+                  EditPlotPage,
                   AddSeasonPage,
                   EditSeasonPage,
                   PlantingPlanReport,
@@ -161,7 +162,7 @@ class Window(tk.Tk):
 
     def open_popup(self, controller, message):
         top = tk.Toplevel(self)
-        top.geometry("250x250")
+        top.geometry("500x250")
 
         top.title("Notification")
 
@@ -1063,7 +1064,7 @@ class EditSetPage(tk.Frame):
                                  column=7,
                                  sticky='E')
 
-        self.search_error = tk.Label(self)
+        self.search_error = tk.Label(self)  # DELETE THIS ONCE CONFIRMED REMOVED USAGE ELSEWHERE
 
         tk.Label(self,
                  text=" ",
@@ -1527,7 +1528,7 @@ class SetupPage(tk.Frame):
                  text="Setup Menu",
                  font=LARGE_FONT).grid(row=1,
                                        column=2,
-                                       columnspan=4)
+                                       columnspan=5)
         tk.Label(self,
                  text=" ",
                  justify=tk.LEFT,
@@ -1575,17 +1576,30 @@ class SetupPage(tk.Frame):
                  text=" ",
                  width='5').grid(row=6,
                                  column=3)
+
+        tk.Button(self,
+                  text="Edit Existing Plot",
+                  command=lambda: controller.show_frame(EditPlotPage)).grid(row=7,
+                                                                              column=3,
+                                                                              sticky='W')
         tk.Button(self,
                   text="Edit Existing Season",
                   command=lambda: controller.show_frame(EditSeasonPage)).grid(row=7,
-                                                                              column=6,
+                                                                              column=5,
                                                                               sticky='W')
+        tk.Label(self,
+                 text=" ",
+                 width='5').grid(row=8,
+                                 column=3)
+
         tk.Button(self,
                   text="Exit to Main",
                   command=lambda: controller.show_frame(StartPage)).grid(row=9,
                                                                          column=1,
                                                                          columnspan=8,
                                                                          sticky='S')
+
+
 
 
 # class to add new Zones to the database
@@ -2036,6 +2050,340 @@ class AddPlotsPage(tk.Frame):
                                    3,
                                    2,
                                    'W')
+
+
+
+class EditPlotPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        self.set_default_values(controller)
+        self.set_plot_spinbox(controller)
+
+    def set_default_values(self, controller):
+        tk.Label(self,
+                 text="Edit Individual Plot",
+                 font=LARGE_FONT).grid(row=1,
+                                       column=1,
+                                       columnspan=2)
+
+        tk.Label(self,
+                 text=" ").grid(row=2,
+                                column=1,
+                                columnspan=5)
+
+        tk.Button(self,
+                  text="Search",
+                  command=lambda: self.import_plot(controller),
+                  width=10).grid(row=3,
+                                 column=4,
+                                 sticky='E')
+
+        tk.Label(self,
+                 text=" ").grid(row=10,
+                                column=1,
+                                columnspan=5)
+
+        button = tk.Button(self, text="Save Changes",
+                           command=lambda: self.export_edited_plot(controller))
+        button.grid(row=11,
+                    column=6,
+                    sticky='E')
+
+        tk.Button(self,
+                  text="Exit to Main",
+                  command=lambda: controller.show_frame(StartPage)).grid(row=12,
+                                            column=5,
+                                            sticky='E')
+        tk.Button(self,
+                  text="Back to Setup Menu",
+                  command=lambda: controller.show_frame(SetupPage)).grid(row=12,
+                                                  column=6,
+                                                  sticky='E')
+
+        self.plot_active = tk.IntVar()
+        self.plot_active_checkbox \
+            = (tk.Checkbutton(self,
+                              text="Plot Active",
+                              variable=self.plot_active,
+                              onvalue=1,
+                              offvalue=0,
+                              width=20,
+                              justify=tk.LEFT,
+                              anchor='w'))
+        self.plot_active_checkbox.grid(row=3,
+                                       column=6)
+
+        tk.Label(self,
+                 text=" ").grid(row=4,
+                                column=1,
+                                columnspan=5)
+
+        tk.Label(self,
+                 text="Size of Plot:",
+                 anchor='e',
+                 justify=tk.RIGHT).grid(row=5,
+                                        column=1)
+
+        self.plot_size_entry = tk.Entry(self,
+                                        width=5,
+                                        justify=tk.LEFT)
+        self.plot_size_entry.grid(row=5,
+                                  column=2)
+
+        tk.Label(self,
+                 text="Unit of Measurement:").grid(row=5,
+                                                   column=3,
+                                                   columnspan=2)
+
+        self.measurement_combo = DropDown(self,
+                                          measurement_unit_query,
+                                          5,
+                                          5,
+                                          1,
+                                          'W')
+
+        tk.Label(self,
+                 text="Sun Level of Plot:").grid(row=6,
+                                                 column=1,
+                                                 columnspan=2)
+
+        self.sun_combo = DropDown(self,
+                                  sun_query,
+                                  6,
+                                  3,
+                                  2,
+                                  'W')
+
+        tk.Label(self,
+                 text="Soil Moisture Level of Plot:").grid(row=7,
+                                                           column=1,
+                                                           columnspan=2)
+
+        self.soil_moisture_combo = DropDown(self,
+                                            soil_moisture_query,
+                                            7,
+                                            3,
+                                            1,
+                                            'W')
+
+        tk.Label(self,
+                 text="Current Nitrogen Level of Plot:").grid(row=7,
+                                                              column=4,
+                                                              columnspan=2)
+
+        self.nitrogen_level = tk.IntVar()
+        self.nitrogen_level_entry = tk.Entry(self,
+                                             width=5)
+        self.nitrogen_level_entry.grid(row=7,
+                                       column=6)
+
+        self.is_container = tk.IntVar()
+        self.is_container_checkbox \
+            = (tk.Checkbutton(self,
+                              text="Is this plot a container (solid bottom)?",
+                              variable=self.is_container,
+                              onvalue=1,
+                              offvalue=0,
+                              width=40,
+                              justify=tk.LEFT,
+                              anchor='w'))
+        self.is_container_checkbox.grid(row=8,
+                                        column=2,
+                                        columnspan=3)
+
+        tk.Label(self,
+                 text="If container, container depth in inches:").grid(row=9,
+                                                                       column=3,
+                                                                       columnspan=2)
+
+        self.container_depth_entry = tk.Entry(self,
+                                              width=5)
+        self.container_depth_entry.grid(row=9,
+                                        column=5)
+
+    def set_plot_spinbox(self, controller):
+        # setup spinbox with highest plot ID number as max value
+        self.plot_stat_list = []
+        top_plot_id = 1
+
+        this_connection = data_connection.Connection()
+        cursor = this_connection.connection.cursor()
+
+        cursor.execute(plot_data_query)
+        records = cursor.fetchall()
+        for r in records:
+            plot_id = r[0]
+            plot_size = r[1]
+            measurement_unit_id = r[2]
+            is_container = r[3]
+            container_depth = r[4]
+            plot_nitrogen_level = r[5]
+            zone_id = r[6]
+            sun_id = r[7]
+            soil_moisture_id = r[8]
+            plot_row = r[9]
+            plot_column = r[10]
+            plot_active = r[11]
+
+            self.this_plot = plot.Plot()
+            self.this_plot.set_plot_values(  # NEED ALL DUE TO FUNCTION PARAMETERS
+                plot_id,
+                plot_size,
+                measurement_unit_id,
+                is_container,
+                container_depth,
+                plot_nitrogen_level,
+                zone_id,
+                sun_id,
+                soil_moisture_id,
+                plot_row,
+                plot_column,
+                plot_active)
+
+            self.plot_stat_list.append(self.this_plot)
+
+            # if no plots have been added, top plot ID set to 0
+            # error handling will occur when search button clicked
+            if r[0] is None:
+                top_plot_id = 0
+
+            # set plot spinbox max value
+            else:
+                if r[0] > top_plot_id:
+                    top_plot_id = r[0]
+
+        tk.Label(self,
+                 text="Enter Plot ID to Edit:",
+                 justify=tk.RIGHT,
+                 anchor='e').grid(row=3,
+                                  column=1,
+                                  columnspan=2)
+
+        # spinbox for the plot, max value set above
+
+        self.plot_spinbox = tk.Spinbox(self,
+                                       from_=0,
+                                       to=top_plot_id,
+                                       width=5)
+        self.plot_spinbox.grid(row=3,
+                               column=3)
+
+    def import_plot(self, controller):
+        self.saved_plot = plot.Plot()
+        plot_id = self.plot_spinbox.get()
+
+        print(plot_id)
+        self.plot_id = self.saved_plot.import_plot(plot_id)
+
+        if self.plot_id is None:
+
+            error_text = "Plot Not Found"
+            controller.open_popup(controller, error_text)
+        else:
+
+            print(self.plot_id)
+
+        if self.plot_id is not None:
+            self.reset_values(controller)
+        else:
+            self.set_default_values(controller)
+
+    def reset_values(self, controller):
+        self.container_depth_entry.delete(0, 'end')
+        self.plot_active = 0
+        self.plot_active_checkbox.deselect()
+        self.is_container = 0
+        self.is_container_checkbox.deselect()
+
+        if self.saved_plot.plot_active is True:
+            self.plot_active = 1
+            self.plot_active_checkbox.select()
+
+        else:
+            self.plot_active = 0
+
+        self.plot_size_entry.delete(0, 'end')
+        self.plot_size_entry.insert(0, self.saved_plot.plot_size)
+
+        self.nitrogen_level_entry.delete(0, 'end')
+        self.nitrogen_level_entry.insert(0, self.saved_plot.plot_nitrogen_level)
+
+        measurement_unit = self.get_id_value(measurement_unit_query, self.saved_plot.measurement_unit_id)
+        self.measurement_combo.combo.set(measurement_unit)
+
+        sun = self.get_id_value(sun_query, self.saved_plot.sun_id)
+        self.sun_combo.combo.set(sun)
+
+        soil_moisture = self.get_id_value(soil_moisture_query, self.saved_plot.soil_moisture_id)
+        self.soil_moisture_combo.combo.set(soil_moisture)
+
+        if self.saved_plot.is_container is True:
+            self.is_container = 1
+            self.is_container_checkbox.select()
+            self.container_depth_entry.insert(0, self.saved_plot.container_depth)
+
+        else:
+            self.is_container = 0
+
+    def export_edited_plot(self, controller):
+
+        try:
+
+            self.plot_size = self.plot_size_entry.get()
+
+            measurement_unit = self.measurement_combo.combo.get()
+            self.measurement_unit_id = self.measurement_combo.get_id(measurement_unit_query, measurement_unit)
+
+            if self.is_container == 1:
+                self.container = bool(True)
+                self.container_depth = int(self.container_depth_entry.get())
+            else:
+                self.container = bool(False)
+                self.container_depth = None
+
+            self.nitrogen_level = self.nitrogen_level_entry.get()
+
+            sun = self.sun_combo.combo.get()
+            self.sun_id = self.sun_combo.get_id(sun_query, sun)
+
+            soil_moisture = self.soil_moisture_combo.combo.get()
+            self.soil_moisture_id = self.soil_moisture_combo.get_id(soil_moisture_query, soil_moisture)
+
+            if self.plot_active == 1:
+                self.is_active = bool(True)
+            else:
+                self.is_active = bool(False)
+
+            self.edited_plot = plot.Plot()
+            self.edited_plot.export_updated_plot(self.plot_id,
+                                                 self.plot_size,
+                                                 self.measurement_unit_id,
+                                                 self.container,
+                                                 self.container_depth,
+                                                 self.nitrogen_level,
+                                                 self.sun_id,
+                                                 self.soil_moisture_id,
+                                                 self.is_active)
+
+
+        except:
+            error_message = "Missing or invalid data, season not updated."
+            controller.open_popup(controller,
+                                  error_message)
+
+    def get_id_value(self,
+                     query_name,
+                     id):
+        this_connection = data_connection.Connection()  # connect to server
+        cursor = this_connection.connection.cursor()  # set connection cursor
+        cursor.execute(query_name)
+        records = cursor.fetchall()
+        for r in records:
+            if id == r[0]:
+                self.value = r[1]
+                this_connection.end_connection()
+                return self.value
 
 
 class AddSeasonPage(tk.Frame):
