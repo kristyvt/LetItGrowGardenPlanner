@@ -46,8 +46,6 @@ class PlantSet:
         self.plot_id = int(plot_id)
         self.set_type_id = int(set_type_id)
 
-        print('hello')
-
         this_connection = data_connection.Connection()  # connect to server
         cursor = this_connection.connection.cursor()  # set connection cursor
 
