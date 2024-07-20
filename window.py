@@ -11,8 +11,8 @@ import export_query
 import planting_year
 from datetime import date
 
-LARGE_FONT = ("Verdana", 12)
-MEDIUM_FONT = ("Verdana", 10)
+LARGE_FONT = ("Helvetica", 16, 'bold')
+MEDIUM_FONT = ("Helvetica", 14)
 
 # SQL queries used to populate dropdown lists
 plant_name_query = 'RetrievePlantNames'
@@ -29,7 +29,6 @@ seasons_query = 'RetrieveMySeasonData'
 
 # SQL queries for reports and data entry
 add_zone_query = 'AddZone'
-my_seasons_query = 'QueryMySeasonData'
 plant_detail_query = 'QueryAllPlantsSetupDetail'
 planting_plan_query = 'QueryPlantingPlan'
 outcome_detail_query = 'QueryOutcomeDetail'
@@ -50,31 +49,34 @@ class DropDown:
                  column,
                  columnspan,
                  sticky):
-        self.this_connection = data_connection.Connection()
-        self.cursor = self.this_connection.connection.cursor()
+        try:
+            self.this_connection = data_connection.Connection()
+            self.cursor = self.this_connection.connection.cursor()
 
-        self.drop_down_list = []
-        self.selection = None
-        self.id = None
+            self.drop_down_list = []
+            self.selection = None
+            self.id = None
 
-        self.cursor.execute(query_name)
-        records = self.cursor.fetchall()
-        for r in records:
-            drop_down_value = r[1]
-            if drop_down_value in self.drop_down_list:
-                continue
-            else:
-                self.drop_down_list.append(drop_down_value)
+            self.cursor.execute(query_name)
+            records = self.cursor.fetchall()
+            for r in records:
+                drop_down_value = r[1]
+                if drop_down_value in self.drop_down_list:
+                    continue
+                else:
+                    self.drop_down_list.append(drop_down_value)
 
-        self.combo = ttk.Combobox(parent,
-                                  values=self.drop_down_list)
-        self.combo.grid(row=row,
-                        column=column,
-                        columnspan=columnspan,
-                        sticky=sticky)
-        self.combo.set('Select Value')
-        self.combo.bind('<<ComboboxSelected>>',
-                        self.get_value)
+            self.combo = ttk.Combobox(parent,
+                                      values=self.drop_down_list)
+            self.combo.grid(row=row,
+                            column=column,
+                            columnspan=columnspan,
+                            sticky=sticky)
+            self.combo.set('Select Value')
+            self.combo.bind('<<ComboboxSelected>>',
+                            self.get_value)
+        except:
+            print("no connection dropdown")
 
     def get_value(self,
                   event):
@@ -120,6 +122,8 @@ class Window(tk.Tk):
         container.grid_columnconfigure(0,
                                        weight=1)
 
+        self.geometry("1000x400")
+
         self.frames = {}
 
         for F in (StartPage,
@@ -144,6 +148,8 @@ class Window(tk.Tk):
 
             self.frames[F] = frame
 
+            frame.configure(background='white')
+
             frame.grid(row=0,
                        column=0,
                        sticky="nsew")
@@ -163,6 +169,7 @@ class Window(tk.Tk):
     def open_popup(self, controller, message):
         top = tk.Toplevel(self)
         top.geometry("500x250")
+        top.configure(bg='white')
 
         top.title("Notification")
 
@@ -170,25 +177,29 @@ class Window(tk.Tk):
         img = tk.PhotoImage(file=icon_file)
         top.iconphoto(False, img)
 
-        tk.Label(top, text=" ").grid(row=1,
-                                     column=1,
-                                     sticky="nsew")
+        tk.Label(top,
+                 text=" ",
+                 bg='white').grid(row=1,
+                                  column=1,
+                                  sticky="nsew")
         tk.Label(top,
                  text=message,
                  justify=tk.CENTER,
-                 anchor="center").grid(row=2,
-                                       column=1,
-                                       columnspan=3,
-                                       sticky="nsew")
-
+                 anchor="center",
+                 bg='white').grid(row=2,
+                                  column=1,
+                                  columnspan=3,
+                                  sticky="nsew")
         tk.Label(top,
-                 text=" ").grid(row=3,
-                                column=1,
-                                sticky="nsew")
-
+                 text=" ",
+                 bg='white').grid(row=3,
+                                  column=1,
+                                  sticky="nsew")
         tk.Button(top,
                   width=10,
                   text="OK",
+                  bg='dimgrey',
+                  fg='white',
                   command=lambda: controller.close_popup(top)).grid(row=4,
                                                                     column=2,
                                                                     sticky='E')
@@ -214,59 +225,82 @@ class StartPage(tk.Frame):
         label.image = logo
 
         tk.Label(self,
-                 image=label.image).grid(row=1,
-                                         column=1,
-                                         columnspan=4)
+                 image=label.image, border=0).grid(row=1,
+                                                   column=1,
+                                                   columnspan=3)
+
+        tk.Label(self,
+                 text="Welcome! Please make a selection below.",
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=2,
+                                  column=1,
+                                  columnspan=3)
 
         # Buttons to navigate to subpages and submenus
 
         tk.Button(self,
-                  width=30,
-                  text="Garden Setup",
-                  command=lambda: controller.show_frame(SetupPage)).grid(row=2,
+                  width=25,
+                  text="Garden Setup & Maintenance",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 12',
+                  command=lambda: controller.show_frame(SetupPage)).grid(row=3,
                                                                          column=1,
                                                                          sticky='E')
         tk.Button(self,
-                  width=30,
+                  width=25,
                   text="Add Plant",
-                  command=lambda: controller.show_frame(AddPlantPage)).grid(row=2,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 12',
+                  command=lambda: controller.show_frame(AddPlantPage)).grid(row=3,
                                                                             column=2,
                                                                             sticky='W')
         tk.Button(self,
-                  width=30,
+                  width=25,
                   text="Complete Year",
-                  command=lambda: controller.show_frame(CompleteYearPage)).grid(row=3,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 12',
+                  command=lambda: controller.show_frame(CompleteYearPage)).grid(row=4,
                                                                                 column=1,
                                                                                 sticky='E')
         tk.Button(self,
-                  width=30,
+                  width=25,
                   text="Reports",
-                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=3,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 12',
+                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=4,
                                                                            column=2,
                                                                            sticky='E')
         tk.Button(self,
-                  width=30,
+                  width=25,
                   text="Start Garden Plan",
-                  command=lambda: controller.show_frame(GardenPlanPage)).grid(row=2,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 12',
+                  command=lambda: controller.show_frame(GardenPlanPage)).grid(row=3,
                                                                               column=3,
                                                                               sticky='E')
         tk.Button(self,
-                  width=30,
-                  text="Edit Plant Set",
-                  command=lambda: controller.show_frame(EditSetPage)).grid(row=3,
+                  width=25,
+                  text="View Garden Plan",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 12',
+                  command=lambda: controller.show_frame(DisplayPlan)).grid(row=4,
                                                                            column=3,
                                                                            sticky='E')
         tk.Button(self,
-                  width=30,
-                  text="View Garden Plan",
-                  command=lambda: controller.show_frame(DisplayPlan)).grid(row=2,
-                                                                           column=4,
-                                                                           sticky='E')
-        tk.Button(self,
-                  width=30,
+                  width=25,
                   text="Exit",
-                  command=lambda: controller.close_window()).grid(row=3,
-                                                                  column=4,
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 12',
+                  command=lambda: controller.close_window()).grid(row=5,
+                                                                  column=2,
                                                                   sticky='E')
 
         for child in self.winfo_children():
@@ -283,40 +317,42 @@ class AddPlantPage(tk.Frame):
 
         tk.Label(self,
                  text="Add Plant",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=2,
-                                       columnspan=4)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
 
         tk.Label(self,
-                 text=" ").grid(row=2,
-                                column=1)
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
 
         tk.Label(self,
                  text="Plant Name:",
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=3,
+                 anchor='e',
+                 bg='white').grid(row=3,
                                   column=1,
                                   columnspan=2)
 
         self.plant_name_entry = tk.Entry(self,
                                          justify=tk.LEFT,
                                          width=40,
-                                         )
+                                         bg='white',
+                                         relief='solid')
         self.plant_name_entry.grid(row=3,
                                    column=3,
                                    columnspan=2)
-
-        self.always_include = tk.IntVar()
-        self.always_include_checkbox = (tk.Checkbutton(self,
-                                                       text="Include every year?",
-                                                       variable=self.always_include,
-                                                       onvalue=1,
-                                                       offvalue=0,
-                                                       width=20,
-                                                       justify=tk.LEFT,
-                                                       anchor='w'))
-        self.always_include_checkbox.grid(row=3,
-                                          column=5)
 
         self.plant_spring = tk.IntVar()
         self.spring_checkbox = (tk.Checkbutton(self,
@@ -326,7 +362,8 @@ class AddPlantPage(tk.Frame):
                                                offvalue=0,
                                                width=20,
                                                justify=tk.LEFT,
-                                               anchor='w'))
+                                               anchor='w',
+                                               bg='white'))
         self.spring_checkbox.grid(row=3,
                                   column=6)
 
@@ -338,18 +375,21 @@ class AddPlantPage(tk.Frame):
                                              offvalue=0,
                                              width=20,
                                              justify=tk.LEFT,
-                                             anchor='w'))
+                                             anchor='w',
+                                             bg='white'))
         self.fall_checkbox.grid(row=3,
                                 column=7)
 
         tk.Label(self,
-                 text=" ").grid(row=4,
-                                column=1)
+                 text=" ",
+                 bg='white').grid(row=4,
+                                  column=1)
 
         tk.Label(self,
-                 text="Crop Rotation Group:").grid(row=5,
-                                                   column=1,
-                                                   columnspan=2)
+                 text="Crop Rotation Group:",
+                 bg='white').grid(row=5,
+                                  column=1,
+                                  columnspan=2)
 
         self.crop_group_combo = DropDown(self,
                                          crop_group_query,
@@ -359,9 +399,10 @@ class AddPlantPage(tk.Frame):
                                          'W')
 
         tk.Label(self,
-                 text="Frost Tolerance:").grid(row=5,
-                                               column=4,
-                                               columnspan=2)
+                 text="Frost Tolerance:",
+                 bg='white').grid(row=5,
+                                  column=4,
+                                  columnspan=2)
 
         self.frost_tolerance_combo = DropDown(self,
                                               frost_tolerance_query,
@@ -371,13 +412,15 @@ class AddPlantPage(tk.Frame):
                                               'W')
 
         tk.Label(self,
-                 text="", ).grid(row=6,
-                                 column=1)
+                 text="",
+                 bg='white').grid(row=6,
+                                  column=1)
 
         tk.Label(self,
-                 text="Sun Required:").grid(row=7,
-                                            column=1,
-                                            columnspan=2)
+                 text="Sun Required:",
+                 bg='white').grid(row=7,
+                                  column=1,
+                                  columnspan=2)
 
         self.sun_combo = DropDown(self,
                                   sun_query,
@@ -387,9 +430,10 @@ class AddPlantPage(tk.Frame):
                                   'W')
 
         tk.Label(self,
-                 text="Soil Moisture Required:").grid(row=7,
-                                                      column=4,
-                                                      columnspan=2)
+                 text="Soil Moisture Required:",
+                 bg='white').grid(row=7,
+                                  column=4,
+                                  columnspan=2)
 
         self.soil_moisture_combo = DropDown(self,
                                             soil_moisture_query,
@@ -399,90 +443,110 @@ class AddPlantPage(tk.Frame):
                                             'W')
 
         tk.Label(self,
-                 text=" ").grid(row=8,
-                                column=1)
+                 text=" ",
+                 bg='white').grid(row=8,
+                                  column=1)
 
         tk.Label(self,
-                 text=" ").grid(row=9,
-                                column=1)
+                 text=" ",
+                 bg='white').grid(row=9,
+                                  column=1)
 
         tk.Label(self,
                  text="Space per Seedling, in inches:",
                  anchor='e',
-                 justify=tk.RIGHT).grid(row=9,
-                                        column=2,
-                                        columnspan=2)
+                 justify=tk.RIGHT,
+                 bg='white').grid(row=9,
+                                  column=2,
+                                  columnspan=2)
 
         self.space_per_seedling_entry = tk.Entry(self,
                                                  width=5,
-                                                 justify=tk.LEFT)
+                                                 justify=tk.LEFT,
+                                                 bg='white',
+                                              relief='solid')
         self.space_per_seedling_entry.grid(row=9,
                                            column=4)
 
         tk.Label(self,
-                 text=" ").grid(row=10,
-                                column=1)
+                 text=" ",
+                 bg='white').grid(row=10,
+                                  column=1)
 
         tk.Label(self,
                  text="Space per Seed Pack, in inches:",
                  anchor='e',
-                 justify=tk.RIGHT).grid(row=10,
-                                        column=2,
-                                        columnspan=2)
+                 justify=tk.RIGHT,
+                 bg='white').grid(row=10,
+                                  column=2,
+                                  columnspan=2)
 
         self.space_per_seedpack_entry = tk.Entry(self,
                                                  width=5,
-                                                 justify=tk.LEFT)
+                                                 justify=tk.LEFT,
+                                                 bg='white',
+                                              relief='solid')
         self.space_per_seedpack_entry.grid(row=10,
                                            column=4)
 
         tk.Label(self,
                  text="Depth Required per Plant, in inches:",
                  anchor='e',
-                 justify=tk.RIGHT).grid(row=9,
-                                        column=5,
-                                        columnspan=2)
+                 justify=tk.RIGHT,
+                 bg='white').grid(row=9,
+                                  column=5,
+                                  columnspan=2)
 
         self.depth_per_plant_entry = tk.Entry(self,
                                               width=5,
-                                              justify=tk.LEFT)
+                                              justify=tk.LEFT,
+                                              relief='solid')
         self.depth_per_plant_entry.grid(row=9,
                                         column=7)
         tk.Label(self,
                  text="Depth to Plant Seeds, inches, 2 decimals ok:",
                  anchor='e',
-                 justify=tk.RIGHT).grid(row=10,
-                                        column=5,
-                                        columnspan=2)
+                 justify=tk.RIGHT,
+                 bg='white').grid(row=10,
+                                  column=5,
+                                  columnspan=2)
 
         self.depth_for_seeds_entry = tk.Entry(self,
                                               width=5,
-                                              justify=tk.LEFT)
+                                              justify=tk.LEFT,
+                                              bg='white',
+                                              relief='solid')
         self.depth_for_seeds_entry.grid(row=10,
                                         column=7)
         tk.Label(self,
-                 text=" ").grid(row=11,
-                                column=1)
+                 text=" ",
+                 bg='white').grid(row=11,
+                                  column=1)
         tk.Label(self,
-                 text=" ").grid(row=12,
-                                column=1,
-                                columnspan=2)
+                 text=" ",
+                 bg='white').grid(row=12,
+                                  column=1,
+                                  columnspan=2)
         tk.Label(self,
                  text="Days to Harvest:",
                  anchor='e',
-                 justify=tk.RIGHT).grid(row=12,
-                                        column=3)
+                 justify=tk.RIGHT,
+                 bg='white').grid(row=12,
+                                  column=3)
 
         self.days_to_harvest_entry = tk.Entry(self,
                                               width=5,
-                                              justify=tk.LEFT)
+                                              justify=tk.LEFT,
+                                              bg='white',
+                                              relief='solid')
         self.days_to_harvest_entry.grid(row=12,
                                         column=4)
 
         tk.Label(self,
-                 text="Watering Frequency:").grid(row=12,
-                                                  column=5,
-                                                  columnspan=1)
+                 text="Watering Frequency:",
+                 bg='white').grid(row=12,
+                                  column=5,
+                                  columnspan=1)
 
         self.watering_requirement_combo = DropDown(self,
                                                    watering_requirement_query,
@@ -492,16 +556,14 @@ class AddPlantPage(tk.Frame):
                                                    'W')
         self.new_plant = plant.Plant()
 
-        tk.Button(self, text="Add Plant",
-                  command=lambda: self.add_new_plant(controller)).grid(row=12,
-                                                                       column=7)
-        tk.Label(self,
-                 text="").grid(row=13,
-                               column=3)
         tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=14,
-                                                                         column=7)
+                  text="Add Plant",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  width=15,
+                  command=lambda: self.add_new_plant(controller)).grid(row=12,
+                                                                       column=8)
 
     def add_new_plant(self, controller):
         self.plant_name = None
@@ -514,14 +576,9 @@ class AddPlantPage(tk.Frame):
         self.depth_requirement = None
         self.depth_to_plant_seeds = None
         self.watering_requirement_id = None
-        self.always_include = None
         self.plant_in_spring = None
         self.plant_in_fall = None
         self.days_to_harvest = None
-        self.indoors_date_range_id = None
-        self.seeds_date_range_id = None
-        self.seedlings_date_range_id = None
-        self.fall_date_range_id = None
         self.plant_active = None
         self.times_succeeded = None
         self.total_times_planted = None
@@ -606,75 +663,152 @@ class GardenPlanPage(tk.Frame):
                           parent)
         tk.Label(self,
                  text="Create Garden Plan",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=2)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
         tk.Label(self,
-                 text="Please complete the following for all Garden Plans").grid(row=2,
-                                                                                 column=1,
-                                                                                 columnspan=5)
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
         tk.Label(self,
-                 text="Select Plant Name:").grid(row=3,
-                                                 column=1)
+                 text="Please complete the following for all Garden Plans:",
+                 font=MEDIUM_FONT,
+                 bg='white',
+                 fg='dark green',
+                 anchor='w',
+                 justify=tk.LEFT).grid(row=3,
+                                       column=2,
+                                       columnspan=5)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=4,
+                                  column=1)
+        tk.Label(self,
+                 text="Select Plant Name:",
+                 bg='white').grid(row=5,
+                                  column=1,
+                                  columnspan=2)
+
         self.plant_combo = DropDown(self,
                                     plant_name_query,
+                                    5,
                                     3,
                                     2,
-                                    3,
                                     'W')
         tk.Label(self,
-                 text="Refresh the list if new plants have been added:").grid(row=3,
-                                                                              column=3,
-                                                                              columnspan=3)
+                 text="Click Refresh if new plants have been added",
+                 bg='white',
+                 justify=tk.RIGHT,
+                 anchor='e').grid(row=5,
+                                  column=4,
+                                  columnspan=3)
         tk.Button(self,
-                  text="Refresh Plants",
-                  command=self.reset_plant_dropdown).grid(row=3,
+                  text="Refresh",
+                  justify=tk.CENTER,
+                  bg='white',
+                  fg='dark green',
+                  font='Helvetica 10',
+                  width=5,
+                  command=self.reset_plant_dropdown).grid(row=5,
                                                           column=7,
-                                                          sticky='E')
+                                                          sticky='EW')
         tk.Label(self,
-                 text="Set Type:").grid(row=4,
-                                        column=1)
+                 text="Set Type:",
+                 bg='white').grid(row=6,
+                                  column=1,
+                                  columnspan=2)
 
         self.set_type_combo = DropDown(self,
                                        set_type_query,
-                                       4,
-                                       2,
+                                       6,
+                                       3,
                                        1,
                                        'W')
         tk.Label(self,
-                 text="Quantity:").grid(row=4,
-                                        column=3)
+                 text="Quantity:",
+                 bg='white').grid(row=7,
+                                  column=1,
+                                  columnspan=2)
 
         self.quantity_entry = tk.Entry(self,
-                                       width=5)
-        self.quantity_entry.grid(row=4,
-                                 column=4)
+                                       width=22,
+                                       justify=tk.LEFT,
+                                       relief=tk.SOLID)
+        self.quantity_entry.grid(row=7,
+                                 column=3)
         tk.Button(self,
-                  text="Add to Auto-Plan",
-                  command=lambda: self.add(controller)).grid(row=4,
-                                                             column=5,
-                                                             sticky='E')
+                  text="Add Plant to Auto-Plan",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.add(controller)).grid(row=7,
+                                                             column=8,
+                                                             sticky='EW')
         tk.Button(self,
                   text="Complete Auto-Plan",
-                  command=lambda: self.complete(controller)).grid(row=5,
-                                                                  column=5,
-                                                                  sticky='E')
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.complete(controller)).grid(row=9,
+                                                                  column=8,
+                                                                  sticky='EW')
         tk.Label(self,
-                 text="For Manual Plans Only").grid(row=6,
-                                                    column=1,
-                                                    columnspan=2)
+                 text=" ",
+                 bg='white').grid(row=8,
+                                  column=1)
+        tk.Label(self,
+                 text="For Manual Plans Only",
+                 font=MEDIUM_FONT,
+                 bg='white',
+                 fg='dark green',
+                 anchor='w',
+                 justify=tk.LEFT).grid(row=10,
+                                       column=2,
+                                       columnspan=3)
+
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=11,
+                                  column=1)
+
         tk.Label(self,
                  text="Select your Season:",
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=7,
+                 anchor='e',
+                 bg='white').grid(row=12,
                                   column=1,
                                   columnspan=2)
 
         self.season_combo = DropDown(self,
                                      seasons_query,
-                                     7,
+                                     12,
                                      3,
-                                     2,
+                                     1,
                                      'W')
+        tk.Label(self,
+                 text="Enter a Plot ID if known, or enter a Zone, Row and Column",
+                 justify=tk.RIGHT,
+                 anchor='e',
+                 bg='white').grid(row=13,
+                                  column=2,
+                                  columnspan=3)
+
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=13,
+                                  column=1)
 
         # setup spinbox with highest plot ID number as max value
         self.plot_stat_list = []
@@ -683,164 +817,162 @@ class GardenPlanPage(tk.Frame):
         top_row = 1
         top_column = 1
 
-        this_connection = data_connection.Connection()
-        cursor = this_connection.connection.cursor()
+        try:
 
-        cursor.execute(plot_data_query)  # CAN REMOVE SOME OF THESE ASSIGNMENTS IF NOT  USED
-        records = cursor.fetchall()
-        for r in records:
-            plot_id = r[0]
-            plot_size = r[1]
-            measurement_unit_id = r[2]
-            is_container = r[3]
-            container_depth = r[4]
-            plot_nitrogen_level = r[5]
-            zone_id = r[6]
-            sun_id = r[7]
-            soil_moisture_id = r[8]
-            plot_row = r[9]
-            plot_column = r[10]
-            plot_active = r[11]
+            this_connection = data_connection.Connection()
+            cursor = this_connection.connection.cursor()
 
-            self.this_plot = plot.Plot()
-            self.this_plot.set_plot_values(
-                plot_id,
-                plot_size,
-                measurement_unit_id,
-                is_container,
-                container_depth,
-                plot_nitrogen_level,
-                zone_id,
-                sun_id,
-                soil_moisture_id,
-                plot_row,
-                plot_column,
-                plot_active)
+            cursor.execute(plot_data_query)  # CAN REMOVE SOME OF THESE ASSIGNMENTS IF NOT  USED
+            records = cursor.fetchall()
+            for r in records:
+                plot_id = r[0]
+                plot_size = r[1]
+                measurement_unit_id = r[2]
+                is_container = r[3]
+                container_depth = r[4]
+                plot_nitrogen_level = r[5]
+                zone_id = r[6]
+                sun_id = r[7]
+                soil_moisture_id = r[8]
+                plot_row = r[9]
+                plot_column = r[10]
+                plot_active = r[11]
 
-            self.plot_stat_list.append(self.this_plot)
+                self.this_plot = plot.Plot()
+                self.this_plot.set_plot_values(
+                    plot_id,
+                    plot_size,
+                    measurement_unit_id,
+                    is_container,
+                    container_depth,
+                    plot_nitrogen_level,
+                    zone_id,
+                    sun_id,
+                    soil_moisture_id,
+                    plot_row,
+                    plot_column,
+                    plot_active)
 
-            # don't include inactive plots
-            if r[11] == 0:
-                continue
+                self.plot_stat_list.append(self.this_plot)
 
-            # error handling if no plots have been set up yet
-            # message displays as soon as program launches
-
-            elif r[0] is None:
-                error_message = ("To start your first Garden Plan\n "
-                                 "Add at least one new Zone and Plot\n"
-                                 "under Garden Setup")
-                controller.open_popup(controller, error_message)
-
-                # set plot and zone spinbox values
-            else:
-                if r[0] > top_plot_id:
-                    top_plot_id = r[0]
-
-                if r[6] is None:
+                # don't include inactive plots
+                if r[11] == 0:
                     continue
+
+                # error handling if no plots have been set up yet
+                # message displays as soon as program launches
+
+                elif r[0] is None:
+                    error_message = ("To start your first Garden Plan\n "
+                                     "Add at least one new Zone and Plot\n"
+                                     "under Garden Setup")
+                    controller.open_popup(controller, error_message)
+
+                    # set plot and zone spinbox values
                 else:
-                    if r[6] > top_zone_id:
-                        top_zone_id = r[6]
+                    if r[0] > top_plot_id:
+                        top_plot_id = r[0]
 
-                if r[9] is None:
-                    continue
-                else:
-                    if r[9] > top_row:
-                        top_row = r[9]
+                    if r[6] is None:
+                        continue
+                    else:
+                        if r[6] > top_zone_id:
+                            top_zone_id = r[6]
 
-                if r[10] is None:
-                    continue
-                else:
-                    if r[10] > top_column:
-                        top_column = r[10]
+                    if r[9] is None:
+                        continue
+                    else:
+                        if r[9] > top_row:
+                            top_row = r[9]
 
-        tk.Label(self,
-                 text="Select Plot ID Number:",
-                 justify=tk.RIGHT,
-                 anchor='e').grid(row=8,
-                                  column=1,
-                                  columnspan=2)
+                    if r[10] is None:
+                        continue
+                    else:
+                        if r[10] > top_column:
+                            top_column = r[10]
 
-        # spinbox for the plot, max value set above
+            tk.Label(self,
+                     text="Plot ID Number:",
+                     justify=tk.RIGHT,
+                     anchor='e',
+                     bg='white').grid(row=14,
+                                      column=1,
+                                      columnspan=2)
 
-        self.plot_spinbox = tk.Spinbox(self,
-                                       from_=0,
-                                       to=top_plot_id)
-        self.plot_spinbox.grid(row=8,
-                               column=3)
+            # spinbox for the plot, max value set above
 
-        tk.Label(self,
-                 text="Or Select Zone, Row and Column below",
-                 justify=tk.RIGHT,
-                 anchor='e').grid(row=8,
-                                  column=5,
-                                  columnspan=3)
+            self.plot_spinbox = tk.Spinbox(self,
+                                           from_=0,
+                                           to=top_plot_id)
+            self.plot_spinbox.grid(row=14,
+                                   column=3)
 
-        # Initiate the manual plan, which checks a selected plot
-        # instead of assigning automatically
+            # Initiate the manual plan, which checks a selected plot
+            # instead of assigning automatically
 
-        tk.Button(self,
-                  text="Check Plot / Instant Add",
-                  command=lambda: self.add_manual_set(controller)).grid(row=10,
-                                                                        column=3,
-                                                                        sticky='E')
+            tk.Button(self,
+                      text="Check Plot / Instant Add",
+                      bg='dark green',
+                      fg='white',
+                      font='Helvetica 10',
+                      command=lambda: self.add_manual_set(controller)).grid(row=13,
+                                                                            column=8,
+                                                                            sticky='EW')
 
-        tk.Label(self,
-                 text="Select Zone:",
-                 justify=tk.RIGHT,
-                 anchor='e').grid(row=9,
-                                  column=5,
-                                  columnspan=2)
+            tk.Label(self,
+                     text="Zone Name:",
+                     justify=tk.RIGHT,
+                     anchor='e',
+                     bg='white').grid(row=14,
+                                      column=5,
+                                      columnspan=2)
 
-        self.zone_combo = DropDown(self,
-                                   zone_query,
-                                   9,
-                                   7,
-                                   2,
-                                   'W')
+            self.zone_combo = DropDown(self,
+                                       zone_query,
+                                       14,
+                                       7,
+                                       1,
+                                       'W')
 
-        tk.Label(self,
-                 text="Select Row Number:",
-                 justify=tk.RIGHT,
-                 anchor='e').grid(row=10,
-                                  column=5,
-                                  columnspan=2)
+            tk.Label(self,
+                     text="Row Number:",
+                     justify=tk.RIGHT,
+                     anchor='e',
+                     bg='white').grid(row=15,
+                                      column=5,
+                                      columnspan=2)
 
-        # spinbox for the row number, max value set above
+            # spinbox for the row number, max value set above
 
-        self.row_spinbox = tk.Spinbox(self,
-                                      from_=0,
-                                      to=top_row)
-        self.row_spinbox.grid(row=10,
-                              column=7)
+            self.row_spinbox = tk.Spinbox(self,
+                                          from_=0,
+                                          to=top_row)
+            self.row_spinbox.grid(row=15,
+                                  column=7)
 
-        tk.Label(self,
-                 text="Select Column Number:",
-                 justify=tk.RIGHT,
-                 anchor='e').grid(row=11,
-                                  column=5,
-                                  columnspan=2)
+            tk.Label(self,
+                     text="Column Number:",
+                     justify=tk.RIGHT,
+                     anchor='e',
+                     bg='white').grid(row=16,
+                                      column=5,
+                                      columnspan=2)
 
-        # spinbox for the column number, max value set above
+            # spinbox for the column number, max value set above
 
-        self.col_spinbox = tk.Spinbox(self,
-                                      from_=0,
-                                      to=top_column)
-        self.col_spinbox.grid(row=11,
-                              column=7)
+            self.col_spinbox = tk.Spinbox(self,
+                                          from_=0,
+                                          to=top_column)
+            self.col_spinbox.grid(row=16,
+                                  column=7)
 
-        tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=13,
-                                                                         column=3,
-                                                                         sticky='E')
+            self.new_plan = plan.Plan()
 
-        self.new_plan = plan.Plan()
+        except:
+            print("no connection available for spinbox")
 
     def add(self, controller):
         self.set_quantity = None
-        self.fixed_location = None
         self.plant_id = None
         self.my_season_id = None
         self.plot_id = None
@@ -939,7 +1071,6 @@ class GardenPlanPage(tk.Frame):
     def add_manual_set(self, controller):
 
         self.set_quantity = None
-        self.fixed_location = None
         self.plant_id = None
         self.my_season_id = None
         self.set_plot_id = None
@@ -998,8 +1129,6 @@ class GardenPlanPage(tk.Frame):
                                     2,
                                     2,
                                     'W')
-
-
 class EditSetPage(tk.Frame):
 
     def __init__(self,
@@ -1016,52 +1145,73 @@ class EditSetPage(tk.Frame):
 
         tk.Label(self,
                  text="Edit Plant Set",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=2)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=7,
+                                                                         sticky='EW')
 
         tk.Label(self,
-                 text=" ").grid(row=2,
-                                column=1,
-                                columnspan=5)
-
-        tk.Label(self,
-                 text="Select Plant Name:").grid(row=3,
-                                                 column=1,
-                                                 columnspan=1)
+                 text="Select Plant Name:",
+                 bg='white',
+                 font='bold').grid(row=3,
+                                  column=1,
+                                  columnspan=1)
 
         self.plant_combo = DropDown(self,
                                     planting_plan_query,
                                     3,
                                     2,
-                                    2,
+                                    1,
                                     'W')
 
         tk.Label(self,
                  text="Season:",
+                 font='bold',
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=3,
-                                  column=4,
+                 anchor='e',
+                 bg='white').grid(row=3,
+                                  column=3,
                                   columnspan=1)
 
         self.season_combo = DropDown(self,
                                      seasons_query,
                                      3,
-                                     5,
+                                     4,
                                      1,
                                      'W')
 
         tk.Button(self,
+                  width=10,
                   text="Search",
-                  command=lambda: self.import_plant_set(controller),
-                  width=10).grid(row=3,
-                                 column=6,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.import_plant_set(controller)).grid(row=3,
+                                 column=5,
                                  sticky='E')
 
         tk.Button(self,
                   text="Next in Season",
-                  command=lambda: self.import_next_plant_set(controller),
-                  width=10).grid(row=3,
-                                 column=7,
+                  width=15,
+                  bg='white',
+                  fg='dark green',
+                  font='Helvetica 10',
+                  command=lambda: self.import_next_plant_set(controller)).grid(row=3,
+                                 column=6,
                                  sticky='E')
 
         self.search_error = tk.Label(self)  # DELETE THIS ONCE CONFIRMED REMOVED USAGE ELSEWHERE
@@ -1069,14 +1219,16 @@ class EditSetPage(tk.Frame):
         tk.Label(self,
                  text=" ",
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=4,
+                 anchor='e',
+                 bg='white').grid(row=4,
                                   column=1,
                                   columnspan=1)
 
         tk.Label(self,
                  text="Plant Set ID:",
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=5,
+                 anchor='e',
+                 bg='white').grid(row=5,
                                   column=1,
                                   columnspan=1)
 
@@ -1084,12 +1236,14 @@ class EditSetPage(tk.Frame):
         self.plant_set_id.set(0)
 
         tk.Label(self,
-                 textvariable=self.plant_set_id).grid(row=5,
-                                                      column=2)
+                 textvariable=self.plant_set_id,
+                 bg='white').grid(row=5,
+                                  column=2)
 
         tk.Label(self,
-                 text="Set Type:").grid(row=5,
-                                        column=4)
+                 text="Set Type:",
+                 bg='white').grid(row=5,
+                                  column=4)
 
         self.set_type_combo = DropDown(self,
                                        set_type_query,
@@ -1099,73 +1253,93 @@ class EditSetPage(tk.Frame):
                                        'W')
 
         tk.Label(self,
-                 text="Quantity:").grid(row=6,
-                                        column=4)
+                 text="Quantity:",
+                 bg='white').grid(row=6,
+                                  column=4)
 
         self.quantity_entry = tk.Entry(self,
                                        width=5,
-                                       justify=tk.LEFT, )
+                                       justify=tk.LEFT,
+                                       bg='white',
+                                       relief='solid')
         self.quantity_entry.grid(row=6,
                                  column=5)
 
         tk.Label(self,
                  text="Plot ID Number:",
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=6,
+                 anchor='e',
+                 bg='white').grid(row=6,
                                   column=1,
                                   columnspan=1)
 
         self.plot_id = '0'
         self.plot_entry = tk.Entry(self,
-                                   width=5)
+                                   width=5,
+                                   bg='white',
+                                   relief='solid')
         self.plot_entry.grid(row=6,
                              column=2)
         self.plot_entry.insert(0, self.plot_id)
 
         tk.Label(self,
-                 text=" ").grid(row=8,
-                                column=1)
+                 text=" ",
+                 bg='white').grid(row=8,
+                                  column=1)
 
         tk.Label(self,
-                 text="Plant Set Notes (Optional):").grid(row=8,
-                                                          column=2,
-                                                          columnspan=1)
+                 text="Plant Set Notes (Optional):",
+                 bg='white').grid(row=8,
+                                  column=1,
+                                  columnspan=1)
 
         self.set_notes_text = tk.Text(self,
                                       height=3,
-                                      width=30)
+                                      width=30,
+                                      bg='white',
+                                      relief='solid')
         self.set_notes_text.grid(row=8,
-                                 column=3,
+                                 column=2,
                                  columnspan=2)
 
         tk.Label(self,
-                 text="Date Planted:").grid(row=7,
-                                            column=6,
-                                            columnspan=2)
+                 text="Date Planted:",
+                 bg='white').grid(row=7,
+                                  column=5,
+                                  columnspan=2)
 
         self.date_planted_entry = tk.Entry(self,
-                                           width=10)
+                                           width=10,
+                                           bg='white',
+                                           relief='solid')
         self.date_planted_entry.grid(row=7,
-                                     column=8)
+                                     column=7)
 
         tk.Label(self,
-                 text="First Harvest Date (MM/DD/YY):").grid(row=8,
-                                                             column=6,
-                                                             columnspan=2)
+                 text="First Harvest Date (MM/DD/YY):",
+                 bg='white').grid(row=8,
+                                  column=5,
+                                  columnspan=2)
+
         self.first_harvest_entry = tk.Entry(self,
-                                            width=10)
+                                            width=10,
+                                            bg='white',
+                                            relief='solid')
         self.first_harvest_entry.grid(row=8,
-                                      column=8)
+                                      column=7)
 
         tk.Label(self,
-                 text="Last Harvest Date (MM/DD/YY)").grid(row=9,
-                                                           column=6,
-                                                           columnspan=2)
+                 text="Last Harvest Date (MM/DD/YY)",
+                 bg='white',).grid(row=9,
+                                  column=5,
+                                  columnspan=2)
 
         self.last_harvest_entry = tk.Entry(self,
-                                           width=10)
+                                           width=10,
+                                           bg='white',
+                                           relief='solid')
         self.last_harvest_entry.grid(row=9,
-                                     column=8)
+                                     column=7)
 
         # Function to retrieve selection from the Outcome Radio button
 
@@ -1178,59 +1352,64 @@ class EditSetPage(tk.Frame):
         tk.Label(self,
                  text="Outcome:",
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=10,
-                                  column=2)
+                 anchor='e',
+                 bg='white').grid(row=10,
+                                  column=1)
 
         outcome_radio_entry = tk.IntVar()  # stores selection value
         self.radio_selection = None
 
         self.radio1 = tk.Radiobutton(self,
                                      text="Pending",
+                                     bg='white',
                                      variable=outcome_radio_entry,
                                      value=9,
                                      command=select_radio)
         self.radio1.grid(row=10,
-                         column=3)
+                         column=2)
 
         self.radio2 = tk.Radiobutton(self,
                                      text="Success",
+                                     bg='white',
                                      variable=outcome_radio_entry,
                                      value=1,
                                      command=select_radio)
         self.radio2.grid(row=10,
-                         column=4)
+                         column=3)
 
         self.radio3 = tk.Radiobutton(self,
                                      text="Failure",
+                                     bg='white',
                                      variable=outcome_radio_entry,
                                      value=0,
                                      command=select_radio)
         self.radio3.grid(row=10,
-                         column=5)
+                         column=4)
 
         self.radio1.select()  # default selection of Pending
 
         tk.Label(self,
-                 text=" ").grid(row=11,
-                                column=1)
+                 text=" ",
+                 bg='white').grid(row=11,
+                                  column=1)
 
         tk.Button(self,
                   text="Check and Save Changes",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
                   command=lambda: self.check_edited_set(controller)).grid(row=13,
-                                                                          column=5,
-                                                                          sticky='E')
+                                                                          column=7,
+                                                                          sticky='EW')
 
         tk.Button(self,
                   text="Save Without Checking",
+                  bg='white',
+                  fg='dark green',
+                  font='Helvetica 10',
                   command=lambda: self.save_unchecked_set(controller)).grid(row=13,
-                                                                            column=3,
-                                                                            sticky='E')
-
-        tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=13,
-                                                                         column=7,
-                                                                         sticky='E')
+                                                                            column=5,
+                                                                            sticky='EW')
 
         # variables to store search criteria that comes from dropdowns
         # plant_set_id is set further up
@@ -1526,80 +1705,111 @@ class SetupPage(tk.Frame):
 
         tk.Label(self,
                  text="Setup Menu",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=2,
-                                       columnspan=5)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
         tk.Label(self,
                  text=" ",
-                 justify=tk.LEFT,
-                 anchor='w').grid(row=2,
-                                  column=1,
-                                  columnspan=6)
-        tk.Label(self,
-                 text=" ",
-                 width='5').grid(row=3,
-                                 column=1)
+                 bg='white').grid(row=2,
+                                  column=1)
+
         tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
+        tk.Label(self,
+                 text=" ",
+                 width='5',
+                 bg='white').grid(row=3,
+                                  column=1)
+        tk.Label(self,
+                 text=" ",
+                 width='5',
+                 bg='white').grid(row=4,
+                                  column=1)
+        tk.Button(self,
+                  width=20,
                   text="Add New Zone",
-                  command=lambda: controller.show_frame(AddZonesPage)).grid(row=3,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(AddZonesPage)).grid(row=4,
                                                                             column=2,
                                                                             sticky='W')
         tk.Label(self,
                  text=" ",
-                 width='5').grid(row=3,
-                                 column=3)
+                 width='5',
+                 bg='white').grid(row=4,
+                                  column=3)
         tk.Button(self,
+                  width=20,
                   text="Add New Plots",
-                  command=lambda: controller.show_frame(AddPlotsPage)).grid(row=3,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(AddPlotsPage)).grid(row=4,
                                                                             column=4,
                                                                             sticky='W')
         tk.Label(self,
                  text=" ",
-                 width='5').grid(row=3,
-                                 column=5)
+                 width='5',
+                 bg='white').grid(row=4,
+                                  column=5)
         tk.Button(self,
+                  width=20,
                   text="Add New Season",
-                  command=lambda: controller.show_frame(AddSeasonPage)).grid(row=3,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(AddSeasonPage)).grid(row=4,
                                                                              column=6,
                                                                              sticky='W')
         tk.Label(self,
                  text=" ",
-                 width='5').grid(row=4,
-                                 column=3)
+                 width='5',
+                 bg='white').grid(row=5,
+                                  column=3)
         tk.Label(self,
                  text="Brand new? Start by adding New Zones, Plots, then Seasons above.",
                  justify=tk.LEFT,
-                 anchor='w').grid(row=5,
-                                  column=1,
-                                  columnspan=6)
+                 anchor='w',
+                 bg='white',
+                 fg='dark green',
+                 font=MEDIUM_FONT).grid(row=6,
+                                  column=2,
+                                  columnspan=4)
         tk.Label(self,
                  text=" ",
-                 width='5').grid(row=6,
-                                 column=3)
+                 width='5',
+                 bg='white').grid(row=7,
+                                  column=3)
 
         tk.Button(self,
+                  width=20,
                   text="Edit Existing Plot",
-                  command=lambda: controller.show_frame(EditPlotPage)).grid(row=7,
-                                                                              column=3,
-                                                                              sticky='W')
-        tk.Button(self,
-                  text="Edit Existing Season",
-                  command=lambda: controller.show_frame(EditSeasonPage)).grid(row=7,
-                                                                              column=5,
-                                                                              sticky='W')
-        tk.Label(self,
-                 text=" ",
-                 width='5').grid(row=8,
-                                 column=3)
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(EditPlotPage)).grid(row=8,
+                                                                            column=4,
+                                                                            sticky='W')
 
         tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=9,
-                                                                         column=1,
-                                                                         columnspan=8,
-                                                                         sticky='S')
-
-
+                  width=20,
+                  text="Edit Plant Set",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(EditSetPage)).grid(row=8,
+                                                                           column=2,
+                                                                           sticky='E')
 
 
 # class to add new Zones to the database
@@ -1610,96 +1820,125 @@ class AddZonesPage(tk.Frame):
 
         tk.Label(self,
                  text="New / Edit Zone",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=2,
-                                       columnspan=4)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
         tk.Label(self,
-                 text="").grid(row=2,
-                               column=2)
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+
+        tk.Button(self,
+                  text="Back to Setup Menu",
+                  bg='white',
+                  fg='dark red',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(SetupPage)).grid(row=2,
+                                                                         column=6,
+                                                                         sticky='EW')
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
+
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=3,
+                                  column=1)
+
         tk.Label(self,
                  text='A "plot" is a space where a single plant'
-                      ' or plant set can be planted.').grid(row=3,
-                                                            column=1,
-                                                            columnspan=8)
+                      ' or plant set can be planted.',
+                 bg='white').grid(row=4,
+                                  column=1,
+                                  columnspan=8)
         tk.Label(self,
                  text='A "Zone" is a group of contiguous plots,'
-                      ' such as a designated garden area or raised bed').grid(row=4,
-                                                                              column=1,
-                                                                              columnspan=8)
+                      ' such as a designated garden area or raised bed',
+                 bg='white').grid(row=5,
+                                  column=1,
+                                  columnspan=8)
         tk.Label(self,
-                 text="").grid(row=5,
-                               column=2)
+                 text="",
+                 bg='white').grid(row=6,
+                                  column=2)
         tk.Label(self,
-                 text='Please enter a unique name for your zone: ').grid(row=6,
-                                                                         column=1,
-                                                                         columnspan=4)
+                 text='Please enter a unique name for your zone: ',
+                 bg='white').grid(row=7,
+                                  column=1,
+                                  columnspan=4)
         tk.Label(self,
-                 text='Ex. "Large Garden, Blue Flowerpot 1').grid(row=7,
-                                                                  column=1,
-                                                                  columnspan=5)
+                 text='Ex. "Large Garden, Blue Flowerpot 1',
+                 bg='white').grid(row=8,
+                                  column=1,
+                                  columnspan=5)
         self.zone_name_entry = tk.Entry(self,
                                         justify=tk.LEFT,
                                         width=40,
-                                        )
-        self.zone_name_entry.grid(row=6,
+                                        bg='white')
+        self.zone_name_entry.grid(row=7,
                                   column=5,
                                   columnspan=3)
         tk.Label(self,
-                 text="").grid(row=8,
-                               column=2)
+                 text="",
+                 bg='white').grid(row=9,
+                                  column=2)
 
         tk.Label(self,
-                 text="Number of rows of plots in this zone:").grid(row=9,
-                                                                    column=1,
-                                                                    columnspan=4)
+                 text="Number of rows of plots in this zone:",
+                 bg='white').grid(row=10,
+                                  column=1,
+                                  columnspan=4)
         self.zone_rows_entry = tk.Entry(self,
                                         justify=tk.LEFT,
-                                        width=5)
-        self.zone_rows_entry.grid(row=9,
+                                        width=5,
+                                        bg='white')
+        self.zone_rows_entry.grid(row=10,
                                   column=5)
         tk.Label(self,
-                 text="Number of columns of plots in this zone:").grid(row=10,
-                                                                       column=1,
-                                                                       columnspan=4)
+                 text="Number of columns of plots in this zone:",
+                 bg='white').grid(row=11,
+                                  column=1,
+                                  columnspan=4)
         self.zone_columns_entry = tk.Entry(self,
                                            justify=tk.LEFT,
-                                           width=5)
-        self.zone_columns_entry.grid(row=10,
+                                           width=5,
+                                           bg='white')
+        self.zone_columns_entry.grid(row=11,
                                      column=5)
 
         tk.Label(self,
-                 text="").grid(row=11,
-                               column=2)
+                 text="",
+                 bg='white').grid(row=12,
+                                  column=2)
 
         tk.Label(self,
-                 text="Zone Notes (Optional):").grid(row=12,
-                                                     column=1,
-                                                     columnspan=2)
+                 text="Zone Notes (Optional):",
+                 bg='white').grid(row=13,
+                                  column=1,
+                                  columnspan=2)
         self.zone_notes_text = tk.Text(self,
                                        height=3,
-                                       width=20)
-        self.zone_notes_text.grid(row=12,
+                                       width=20,
+                                       bg='white')
+        self.zone_notes_text.grid(row=13,
                                   column=3,
                                   columnspan=3)
-
-        tk.Button(self, text="Add Zone",
-                  command=lambda: self.add_new_zone(controller)).grid(row=12,
-                                                                      column=7)
-
-        tk.Label(self,
-                 text="").grid(row=13,
-                               column=5)
-
         tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=14,
-                                                                         column=5,
-                                                                         sticky='E')
-        tk.Button(self,
-                  text="Back to Setup Menu",
-                  command=lambda: controller.show_frame(SetupPage)).grid(row=14,
-                                                                         column=7,
-                                                                         sticky='E')
+                  text="Add Zone",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.add_new_zone(controller)).grid(row=13,
+                                                                      column=8,
+                                                                      sticky='EW')
 
     def add_new_zone(self, controller):
         self.zone_rows = None
@@ -1745,26 +1984,40 @@ class AddPlotsPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        label = (tk.Label
-                 (self,
-                  text="Add New Plots",
-                  font=LARGE_FONT))
-        label.grid(row=1,
-                   column=2,
-                   columnspan=4)
+        tk.Label(self,
+                 text="Add New Plots",
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  text="Back to Setup Menu",
+                  bg='white',
+                  fg='dark red',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(SetupPage)).grid(row=2,
+                                                                         column=6,
+                                                                         sticky='EW')
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
 
-        label = (tk.Label
-                 (self,
-                  text=""))
-        label.grid(row=2,
-                   column=2)
-
-        label = (tk.Label
-                 (self,
-                  text="Please select a Zone:"))
-        label.grid(row=3,
-                   column=1,
-                   columnspan=2)
+        tk.Label(self,
+                 text="Please select a Zone:",
+                 bg='white').grid(row=3,
+                                  column=1,
+                                  columnspan=2)
 
         self.zone_combo = DropDown(self,
                                    zone_query,
@@ -1773,63 +2026,66 @@ class AddPlotsPage(tk.Frame):
                                    2,
                                    'W')
 
-        label = tk.Label(self,
-                         text="Refresh the list if new zones have been added:")
-        label.grid(row=3,
-                   column=5,
-                   columnspan=3)
+        tk.Label(self,
+                 text="Click Refresh if new zones have been added:",
+                 bg='white').grid(row=3,
+                                  column=5,
+                                  columnspan=3)
 
-        button = tk.Button(self,
-                           text="Refresh Zones",
-                           command=self.reset_zone_dropdown)
-        button.grid(row=3,
-                    column=9,
-                    sticky='E')
+        tk.Button(self,
+                  text="Refresh",
+                  bg='white',
+                  fg='dark green',
+                  font='Helvetica 10',
+                  command=self.reset_zone_dropdown).grid(row=3,
+                                                         column=8,
+                                                         sticky='E')
 
-        label = (tk.Label
-                 (self,
-                  text="Number of rows of identical plots to add:"))
-        label.grid(row=4,
-                   column=1,
-                   columnspan=3)
+        tk.Label(self,
+                 text="Number of rows of identical plots to add:",
+                 bg='white').grid(row=4,
+                                  column=1,
+                                  columnspan=3)
 
         self.quantity_rows_entry = tk.Entry(self,
-                                            width=5)
+                                            width=5,
+                                            relief=tk.SOLID)
         self.quantity_rows_entry.grid(row=4,
                                       column=4)
 
-        label = (tk.Label
-                 (self,
-                  text="Number of columns of identical plots to add:"))
-        label.grid(row=5,
-                   column=1,
-                   columnspan=3)
+        tk.Label(self,
+                 text="Number of columns of identical plots to add:",
+                 bg='white').grid(row=5,
+                                  column=1,
+                                  columnspan=3)
 
         self.quantity_columns_entry = tk.Entry(self,
-                                               width=5)
+                                               width=5,
+                                               bg='white',
+                                               relief=tk.SOLID)
         self.quantity_columns_entry.grid(row=5,
                                          column=4)
 
-        label = (tk.Label
-                 (self,
-                  text="Size of each Plot:",
-                  anchor='e',
-                  justify=tk.RIGHT))
-        label.grid(row=6,
-                   column=1)
+        tk.Label(self,
+                 text="Size of each Plot:",
+                 anchor='e',
+                 justify=tk.RIGHT,
+                 bg='white').grid(row=6,
+                                  column=1)
 
         self.plot_size_entry = tk.Entry(self,
                                         width=5,
-                                        justify=tk.LEFT)
+                                        justify=tk.LEFT,
+                                        bg='white',
+                                        relief=tk.SOLID)
         self.plot_size_entry.grid(row=6,
                                   column=2)
 
-        label = (tk.Label
-                 (self,
-                  text="Unit of Measurement:"))
-        label.grid(row=6,
-                   column=3,
-                   columnspan=2)
+        tk.Label(self,
+                 text="Unit of Measurement:",
+                 bg='white').grid(row=6,
+                                  column=3,
+                                  columnspan=2)
 
         self.measurement_combo = DropDown(self,
                                           measurement_unit_query,
@@ -1838,16 +2094,16 @@ class AddPlotsPage(tk.Frame):
                                           2,
                                           'W')
 
-        label = (tk.Label
-                 (self,
-                  text=""))
-        label.grid(row=7,
-                   column=1)
+        tk.Label(self,
+                 text="",
+                 bg='white').grid(row=7,
+                                  column=1)
 
         self.is_container = tk.IntVar()
         self.is_container_checkbox \
             = (tk.Checkbutton(self,
                               text="Is this plot a container (solid bottom)?",
+                              bg='white',
                               variable=self.is_container,
                               onvalue=1,
                               offvalue=0,
@@ -1858,24 +2114,23 @@ class AddPlotsPage(tk.Frame):
                                         column=2,
                                         columnspan=3)
 
-        label = (tk.Label
-                 (self,
-                  text="If container, container depth in inches:"))
-        label.grid(row=8,
-                   column=3,
-                   columnspan=3)
+        tk.Label(self,
+                 text="If container, container depth in inches:",
+                 bg='white').grid(row=8,
+                                  column=3,
+                                  columnspan=3)
 
         self.container_depth_entry = tk.Entry(self,
-                                              width=5)
+                                              width=5,
+                                              relief=tk.SOLID)
         self.container_depth_entry.grid(row=8,
                                         column=6)
 
-        label = (tk.Label
-                 (self,
-                  text="Sun Level of Plot(s):"))
-        label.grid(row=9,
-                   column=1,
-                   columnspan=2)
+        tk.Label(self,
+                 text="Sun Level of Plot(s):",
+                 bg='white').grid(row=9,
+                                  column=1,
+                                  columnspan=2)
 
         self.sun_combo = DropDown(self,
                                   sun_query,
@@ -1885,9 +2140,10 @@ class AddPlotsPage(tk.Frame):
                                   'W')
 
         tk.Label(self,
-                 text="Soil Moisture Level of Plot(s):").grid(row=9,
-                                                              column=5,
-                                                              columnspan=2)
+                 text="Soil Moisture Level of Plot(s):",
+                 bg='white').grid(row=9,
+                                  column=5,
+                                  columnspan=2)
 
         self.soil_moisture_combo = DropDown(self,
                                             soil_moisture_query,
@@ -1897,26 +2153,18 @@ class AddPlotsPage(tk.Frame):
                                             'W')
 
         tk.Label(self,
-                 text=" ").grid(row=10,
-                                column=5,
-                                columnspan=2)
+                 text=" ",
+                 bg='white').grid(row=10,
+                                  column=5,
+                                  columnspan=2)
 
-        button = tk.Button(self, text="Add Plots",
-                           command=lambda: self.add_new_plots(controller))
-        button.grid(row=11,
-                    column=7,
-                    sticky='E')
-
-        tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=12,
-                                                                         column=5,
-                                                                         sticky='E')
-        tk.Button(self,
-                  text="Back to Setup Menu",
-                  command=lambda: controller.show_frame(SetupPage)).grid(row=12,
-                                                                         column=7,
-                                                                         sticky='E')
+        tk.Button(self, text="Add Plots",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.add_new_plots(controller)).grid(row=11,
+                                                                       column=8,
+                                                                       sticky='EW')
 
     def add_new_plots(self, controller):
         self.total_rows = None
@@ -2052,155 +2300,195 @@ class AddPlotsPage(tk.Frame):
                                    'W')
 
 
-
 class EditPlotPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        self.set_default_values(controller)
-        self.set_plot_spinbox(controller)
+        try:
+
+            self.set_default_values(controller)
+            self.set_plot_spinbox(controller)
+
+        except:
+            print("no connection available")
 
     def set_default_values(self, controller):
         tk.Label(self,
                  text="Edit Individual Plot",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=1,
-                                       columnspan=2)
-
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
         tk.Label(self,
-                 text=" ").grid(row=2,
-                                column=1,
-                                columnspan=5)
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  text="Back to Setup Menu",
+                  bg='white',
+                  fg='dark red',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(SetupPage)).grid(row=2,
+                                                                         column=6,
+                                                                         sticky='EW')
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
 
         tk.Button(self,
+                  width=10,
                   text="Search",
-                  command=lambda: self.import_plot(controller),
-                  width=10).grid(row=3,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.import_plot(controller)).grid(row=3,
                                  column=4,
                                  sticky='E')
 
         tk.Label(self,
-                 text=" ").grid(row=10,
-                                column=1,
-                                columnspan=5)
+                 text=" ",
+                 bg='white').grid(row=10,
+                                  column=1,
+                                  columnspan=5)
 
-        button = tk.Button(self, text="Save Changes",
-                           command=lambda: self.export_edited_plot(controller))
-        button.grid(row=11,
-                    column=6,
-                    sticky='E')
-
-        tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=12,
-                                            column=5,
-                                            sticky='E')
-        tk.Button(self,
-                  text="Back to Setup Menu",
-                  command=lambda: controller.show_frame(SetupPage)).grid(row=12,
-                                                  column=6,
-                                                  sticky='E')
-
-        self.plot_active = tk.IntVar()
-        self.plot_active_checkbox \
-            = (tk.Checkbutton(self,
-                              text="Plot Active",
-                              variable=self.plot_active,
-                              onvalue=1,
-                              offvalue=0,
-                              width=20,
-                              justify=tk.LEFT,
-                              anchor='w'))
-        self.plot_active_checkbox.grid(row=3,
-                                       column=6)
-
+        tk.Button(self, text="Save Changes",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.export_edited_plot(controller)).grid(row=11,
+                                                                            column=8,
+                                                                            sticky='EW')
         tk.Label(self,
-                 text=" ").grid(row=4,
-                                column=1,
-                                columnspan=5)
+                 text=" ",
+                 bg='white').grid(row=4,
+                                  column=1,
+                                  columnspan=5)
 
         tk.Label(self,
                  text="Size of Plot:",
                  anchor='e',
-                 justify=tk.RIGHT).grid(row=5,
-                                        column=1)
+                 justify=tk.RIGHT,
+                 bg='white').grid(row=5,
+                                  column=2)
 
         self.plot_size_entry = tk.Entry(self,
                                         width=5,
-                                        justify=tk.LEFT)
+                                        justify=tk.LEFT,
+                                        bg='white',
+                                        relief=tk.SOLID)
         self.plot_size_entry.grid(row=5,
-                                  column=2)
-
+                                  column=3)
         tk.Label(self,
-                 text="Unit of Measurement:").grid(row=5,
-                                                   column=3,
-                                                   columnspan=2)
+                 text="Unit of Measurement:",
+                 bg='white').grid(row=5,
+                                  column=4,
+                                  columnspan=2)
 
         self.measurement_combo = DropDown(self,
                                           measurement_unit_query,
                                           5,
-                                          5,
+                                          6,
                                           1,
                                           'W')
-
         tk.Label(self,
-                 text="Sun Level of Plot:").grid(row=6,
-                                                 column=1,
-                                                 columnspan=2)
+                 text=" ",
+                 bg='white').grid(row=6,
+                                  column=1,
+                                  columnspan=5)
+        tk.Label(self,
+                 text="Sun Level of Plot:",
+                 bg='white').grid(row=7,
+                                  column=1,
+                                  columnspan=2)
 
         self.sun_combo = DropDown(self,
                                   sun_query,
-                                  6,
+                                  7,
                                   3,
                                   2,
                                   'W')
 
         tk.Label(self,
-                 text="Soil Moisture Level of Plot:").grid(row=7,
-                                                           column=1,
-                                                           columnspan=2)
+                 text="Soil Moisture Level of Plot:",
+                 bg='white').grid(row=8,
+                                  column=1,
+                                  columnspan=2)
 
         self.soil_moisture_combo = DropDown(self,
                                             soil_moisture_query,
-                                            7,
+                                            8,
                                             3,
                                             1,
                                             'W')
 
         tk.Label(self,
-                 text="Current Nitrogen Level of Plot:").grid(row=7,
-                                                              column=4,
-                                                              columnspan=2)
+                 text="Current Nitrogen Level of Plot:",
+                 bg='white').grid(row=8,
+                                  column=4,
+                                  columnspan=2)
 
         self.nitrogen_level = tk.IntVar()
         self.nitrogen_level_entry = tk.Entry(self,
-                                             width=5)
-        self.nitrogen_level_entry.grid(row=7,
+                                             width=5,
+                                             bg='white',
+                                             relief=tk.SOLID)
+        self.nitrogen_level_entry.grid(row=8,
                                        column=6)
+
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=9,
+                                  column=1,
+                                  columnspan=5)
 
         self.is_container = tk.IntVar()
         self.is_container_checkbox \
             = (tk.Checkbutton(self,
                               text="Is this plot a container (solid bottom)?",
+                              bg='white',
                               variable=self.is_container,
                               onvalue=1,
                               offvalue=0,
                               width=40,
                               justify=tk.LEFT,
                               anchor='w'))
-        self.is_container_checkbox.grid(row=8,
+        self.is_container_checkbox.grid(row=10,
                                         column=2,
                                         columnspan=3)
 
         tk.Label(self,
-                 text="If container, container depth in inches:").grid(row=9,
-                                                                       column=3,
-                                                                       columnspan=2)
+                 text="If container, container depth in inches:",
+                 bg='white').grid(row=11,
+                                  column=3,
+                                  columnspan=2)
 
         self.container_depth_entry = tk.Entry(self,
-                                              width=5)
-        self.container_depth_entry.grid(row=9,
+                                              width=5,
+                                              bg='white',
+                                              relief=tk.SOLID)
+        self.container_depth_entry.grid(row=11,
                                         column=5)
+
+        self.plot_active = tk.IntVar()
+        self.plot_active_checkbox \
+            = (tk.Checkbutton(self,
+                              text="Plot Active",
+                              bg='white',
+                              variable=self.plot_active,
+                              onvalue=1,
+                              offvalue=0,
+                              width=20,
+                              justify=tk.RIGHT,
+                              anchor='e'))
+        self.plot_active_checkbox.grid(row=12,
+                                       column=2)
 
     def set_plot_spinbox(self, controller):
         # setup spinbox with highest plot ID number as max value
@@ -2256,7 +2544,9 @@ class EditPlotPage(tk.Frame):
         tk.Label(self,
                  text="Enter Plot ID to Edit:",
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=3,
+                 anchor='e',
+                 bg='white',
+                 font='bold').grid(row=3,
                                   column=1,
                                   columnspan=2)
 
@@ -2393,24 +2683,46 @@ class AddSeasonPage(tk.Frame):
 
         tk.Label(self,
                  text="Add New Season",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=2,
-                                       columnspan=4)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  text="Back to Setup Menu",
+                  bg='white',
+                  fg='dark red',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(SetupPage)).grid(row=2,
+                                                                         column=6,
+                                                                         sticky='EW')
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
 
         tk.Label(self,
-                 text="").grid(row=2,
-                               column=2)
-
-        tk.Label(self,
-                 text="Select Season Name:").grid(row=3,
-                                                  column=1,
-                                                  columnspan=2)
+                 text="Select Season:",
+                 font='bold',
+                 bg='white').grid(row=3,
+                                  column=1,
+                                  columnspan=2)
 
         self.season_radio_entry = tk.IntVar()
         self.radio_selection = 0
 
         self.radio1 = tk.Radiobutton(self,
                                      text="Spring",
+                                     bg='white',
                                      justify=tk.RIGHT,
                                      anchor='e',
                                      variable=self.season_radio_entry,
@@ -2421,6 +2733,7 @@ class AddSeasonPage(tk.Frame):
 
         self.radio2 = tk.Radiobutton(self,
                                      text="Fall",
+                                     bg='white',
                                      justify=tk.RIGHT,
                                      anchor='e',
                                      variable=self.season_radio_entry,
@@ -2430,13 +2743,16 @@ class AddSeasonPage(tk.Frame):
                          column=4)
 
         tk.Label(self,
-                 text="").grid(row=4,
-                               column=2)
+                 text="",
+                 bg='white').grid(row=4,
+                                  column=2)
 
         tk.Label(self,
-                 text="Select Year:").grid(row=5,
-                                           column=1,
-                                           columnspan=2)
+                 text="Enter Year:",
+                 font='bold',
+                 bg='white').grid(row=5,
+                                  column=1,
+                                  columnspan=2)
 
         self.year_spinbox = tk.Spinbox(self,
                                        from_=2020,
@@ -2445,31 +2761,14 @@ class AddSeasonPage(tk.Frame):
         self.year_spinbox.grid(row=5,
                                column=3)
 
-        button = tk.Button(self,
+        tk.Button(self,
                            text="Generate My Season",
-                           command=lambda: self.add_new_season(controller))
-        button.grid(row=5,
+                           bg='dark green',
+                           fg='white',
+                           font='Helvetica 10',
+                           command=lambda: self.add_new_season(controller)).grid(row=5,
                     column=5,
-                    sticky='E')
-
-        tk.Label(self,
-                 text="").grid(row=6,
-                               column=2)
-
-        tk.Label(self,
-                 text="").grid(row=7,
-                               column=2)
-
-        tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=8,
-                                                                         column=3,
-                                                                         sticky='E')
-        tk.Button(self,
-                  text="Back to Setup Menu",
-                  command=lambda: controller.show_frame(SetupPage)).grid(row=8,
-                                                                         column=5,
-                                                                         sticky='E')
+                    sticky='EW')
 
     def select_radio(self):
         self.radio_selection = self.season_radio_entry.get()
@@ -2509,89 +2808,112 @@ class EditSeasonPage(tk.Frame):
 
         self.season_combo = DropDown(self,
                                      seasons_query,
+                                     4,
                                      3,
                                      3,
-                                     2,
-                                     'W')
-        tk.Button(self,
-                  text="Search for Season",
-                  command=lambda: self.import_my_season(controller)).grid(row=3,
-                                                                          column=5,
-                                                                          sticky='E')
-        tk.Button(self,
-                  text="Save Changes",
-                  command=lambda: self.export_edited_season(controller)).grid(row=7,
-                                                                              column=5,
-                                                                              sticky='E')
-        tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=8,
-                                                                         column=3,
-                                                                         sticky='E')
+                                     'E')
         tk.Button(self,
                   text="Back to Setup Menu",
-                  command=lambda: controller.show_frame(SetupPage)).grid(row=8,
-                                                                         column=5,
-                                                                         sticky='E')
+                  bg='white',
+                  fg='dark red',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(SetupPage)).grid(row=2,
+                                                                         column=6,
+                                                                         sticky='EW')
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
+        tk.Button(self,
+                  width=5,
+                  text="Go",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.import_my_season(controller)).grid(row=4,
+                                                                          column=6,
+                                                                          sticky='W')
+        tk.Button(self,
+                  text="Save Changes",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.export_edited_season(controller)).grid(row=8,
+                                                                              column=8,
+                                                                              sticky='EW')
+
 
     # set default label values, so they can persist when other data is reset
     def set_default_values(self):
 
         tk.Label(self,
-                 text="Edit or Complete Season",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=2,
-                                       columnspan=4)
+                 text="Edit Season",
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
         tk.Label(self,
-                 text="").grid(row=2,
-                               column=2)
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+
         tk.Label(self,
-                 text="Select your Season:",
-                 justify=tk.RIGHT,
-                 anchor='e').grid(row=3,
+                 text="",
+                 bg='white').grid(row=3,
+                                  column=2)
+
+        tk.Label(self,
+                 text="Select Season:",
+                 bg='white',
+                 font=MEDIUM_FONT).grid(row=4,
                                   column=1,
                                   columnspan=2)
         tk.Label(self,
-                 text="").grid(row=7,
-                               column=2)
+                 text="",
+                 bg='white').grid(row=5,
+                                  column=2)
         tk.Label(self,
-                 text="Select My Season:").grid(row=3,
-                                                column=1,
-                                                columnspan=2)
-        tk.Label(self,
-                 text="").grid(row=4,
-                               column=2)
-        tk.Label(self,
-                 text="Season Name:").grid(row=5,
-                                           column=1,
-                                           columnspan=2)
+                 text="Season Name:",
+                 bg='white').grid(row=6,
+                                  column=1,
+                                  columnspan=2)
 
         self.season_radio_entry = tk.IntVar()
         self.radio_selection = 0
 
         self.radio1 = tk.Radiobutton(self,
                                      text="Spring",
+                                     bg='white',
                                      justify=tk.RIGHT,
                                      anchor='e',
                                      variable=self.season_radio_entry,
                                      value=1,
                                      command=self.select_radio)
-        self.radio1.grid(row=5,
+        self.radio1.grid(row=6,
                          column=3)
 
         self.radio2 = tk.Radiobutton(self,
                                      text="Fall",
+                                     bg='white',
                                      justify=tk.RIGHT,
                                      anchor='e',
                                      variable=self.season_radio_entry,
                                      value=2,
                                      command=self.select_radio)
-        self.radio2.grid(row=5,
+        self.radio2.grid(row=6,
                          column=4)
         tk.Label(self,
-                 text="Select Year:").grid(row=6,
-                                           column=1,
-                                           columnspan=2)
+                 text="Year:",
+                 bg='white',
+                 justify=tk.LEFT).grid(row=7,
+                                  column=1,
+                                  columnspan=2)
         self.year = tk.IntVar()
         self.year.set(int(date.today().strftime("%Y")))
         self.year_spinbox = tk.Spinbox(self,
@@ -2600,26 +2922,23 @@ class EditSeasonPage(tk.Frame):
                                        width=10,
                                        textvariable=self.year
                                        )
-        self.year_spinbox.grid(row=6,
+        self.year_spinbox.grid(row=7,
                                column=3)
 
         self.season_active = tk.IntVar()
         self.season_active_checkbox \
             = (tk.Checkbutton(self,
                               text="Season Active",
+                              bg='white',
                               variable=self.season_active,
                               onvalue=1,
                               offvalue=0,
                               width=20,
                               justify=tk.LEFT,
                               anchor='w'))
-        self.season_active_checkbox.grid(row=7,
-                                         column=2,
+        self.season_active_checkbox.grid(row=8,
+                                         column=1,
                                          columnspan=3)
-
-        tk.Label(self,
-                 text="").grid(row=8,
-                               column=2)
 
     def select_radio(self):
         self.radio_selection = self.season_radio_entry.get()
@@ -2713,20 +3032,31 @@ class DisplayPlan(tk.Frame):
 
         tk.Label(self,
                  text="Current Garden Plan",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=1,
-                                       columnspan=8)
-
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
         tk.Label(self,
                  text=" ",
-                 justify=tk.RIGHT,
-                 anchor='e').grid(row=2,
+                 bg='white').grid(row=2,
                                   column=1)
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
 
         tk.Label(self,
                  text="Select your Season:",
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=3,
+                 anchor='e',
+                 bg='white',
+                 font='bold').grid(row=3,
                                   column=1,
                                   columnspan=2)
 
@@ -2734,25 +3064,25 @@ class DisplayPlan(tk.Frame):
                                      seasons_query,
                                      3,
                                      3,
-                                     2,
+                                     1,
                                      'W')
 
         tk.Label(self,
-                 text=" ").grid(row=3,
-                                column=5)
+                 text=" ",
+                 bg='white').grid(row=3,
+                                  column=5)
 
-        tk.Button(self, text="View Plan for Season",
+        tk.Button(self,
+                  text="View Plan for Season",
+                  bg='dark green',
+                  fg='white',
                   command=lambda: self.view_season_plan(controller)).grid(row=3,
                                                                           column=6)
 
         tk.Label(self,
-                 text=" ").grid(row=3,
-                                column=7)
-
-        tk.Button(self,
-                  text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=3,
-                                                                         column=8)
+                 text=" ",
+                 bg='white').grid(row=3,
+                                  column=7)
 
     def reset_grid(self):
         for label in self.winfo_children():
@@ -2765,14 +3095,23 @@ class DisplayPlan(tk.Frame):
 
         tk.Label(self,
                  text="Current Garden Plan",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=1,
-                                       columnspan=8)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
         tk.Label(self,
                  text=" ",
-                 justify=tk.RIGHT,
-                 anchor='e').grid(row=2,
+                 bg='white').grid(row=2,
                                   column=1)
+        tk.Label(self,
+                 text="Select your Season:",
+                 justify=tk.RIGHT,
+                 anchor='e',
+                 bg='white',
+                 font=MEDIUM_FONT).grid(row=3,
+                                  column=1,
+                                  columnspan=2)
 
         self.set_season_id(controller)
         self.query_grid(display_grid_query, self.season_id, controller)
@@ -2800,8 +3139,10 @@ class DisplayPlan(tk.Frame):
             last_row = 6
             max_column = 0
 
-            tk.Label(self, text=" ").grid(column=1,
-                                          row=4)
+            tk.Label(self,
+                     text=" ",
+                     bg='white').grid(column=1,
+                                      row=4)
 
             for row_number, data_row in enumerate(cursor):  # query is sorted by zones already
                 current_zone = data_row[0]
@@ -2810,19 +3151,38 @@ class DisplayPlan(tk.Frame):
                 current_plant = data_row[5]
 
                 if zone == '':
-                    tk.Label(self, text=str(current_zone)).grid(column=1, row=last_row)
+                    tk.Label(self,
+                             text=str(current_zone),
+                             bg='white',
+                             font=MEDIUM_FONT).grid(column=1,
+                                              row=last_row)
                 elif zone != current_zone:
                     last_row = last_row + max_row + 1
-                    tk.Label(self, text=' ').grid(column=1, row=last_row)
+                    tk.Label(self,
+                             text=' ',
+                             bg='white').grid(column=1,
+                                              row=last_row)
                     last_row = last_row + 1
-                    tk.Label(self, text=str(current_zone)).grid(column=1, row=last_row)
+                    tk.Label(self,
+                             text=str(current_zone),
+                             bg='white',
+                             font=MEDIUM_FONT).grid(column=1,
+                                              row=last_row)
                     max_row = 0
                 else:
                     if current_row > max_row:
                         max_row = current_row
 
-                tk.Label(self, text=str(current_plant)).grid(column=current_column, row=current_row + last_row)
-                tk.Label(self, text='Row ' + str(current_row)).grid(column=1, row=current_row + last_row)
+                tk.Label(self,
+                         text=str(current_plant),
+                         bg='white',
+                         font='roman',
+                         fg='dark green').grid(column=current_column,
+                                          row=current_row + last_row)
+                tk.Label(self,
+                         text='Row ' + str(current_row),
+                         bg='white').grid(column=1,
+                                          row=current_row + last_row)
 
                 if current_column >= max_column:
                     max_column = current_column
@@ -2830,7 +3190,10 @@ class DisplayPlan(tk.Frame):
                 zone = current_zone
 
             for column in range(1, max_column):
-                tk.Label(self, text='Column ' + str(column)).grid(column=column + 1, row=5)
+                tk.Label(self,
+                         text='Column ' + str(column),
+                         bg='white').grid(column=column + 1,
+                                          row=5)
 
             this_connection.end_connection()
 
@@ -2854,69 +3217,70 @@ class ReportsMenu(tk.Frame):
         label = tk.Label(image=logo)
         label.image = logo
 
-        label = tk.Label(self,
-                         image=label.image)
-        label.grid(row=2,
-                   rowspan=5,
-                   column=4,
-                   columnspan=2)
+        tk.Label(self,
+                 image=label.image, border=0).grid(row=3,
+                                                   rowspan=6,
+                                                   column=4,
+                                                   columnspan=3)
+        tk.Label(self,
+                 text="Reports Menu",
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
+        tk.Label(self,
+                 text="Please Select a Report to View",
+                 bg='white',
+                 fg='dark green',
+                 font=MEDIUM_FONT).grid(row=3,
+                                        column=1,
+                                        columnspan=3)
+        tk.Button(self,
+                  width=30,
+                  text="My Planting Plan",
+                  bg='dark green',
+                  fg='white',
+                  command=lambda: controller.show_frame(PlantingPlanReport)).grid(row=4,
+                                                                                  column=2,
+                                                                                  sticky='W')
+        tk.Button(self,
+                  width=30,
+                  text="All Plants Detail",
+                  bg='dark green',
+                  fg='white',
+                  command=lambda: controller.show_frame(PlantsDetailReport)
+                  ).grid(row=4, column=3, sticky='E')
 
-        label = (tk.Label
-                 (self,
-                  text="Reports Menu",
-                  font=LARGE_FONT))
-
-        label.grid(row=1,
-                   column=2,
-                   columnspan=4)
-
-        label = (tk.Label
-                 (self,
-                  text="Please Select a Report to View"))
-
-        label.grid(row=2,
-                   column=1,
-                   columnspan=3)
-
-        button = tk.Button(self,
-                           width=30,
-                           text="My Planting Plan",
-                           command=lambda: controller.show_frame(PlantingPlanReport))
-        button.grid(row=3,
-                    column=2,
-                    sticky='W')
-
-        button = tk.Button(self,
-                           width=30,
-                           text="All Plants Detail",
-                           command=lambda: controller.show_frame(PlantsDetailReport)
-                           )
-        button.grid(row=3, column=3, sticky='E')
-
-        button = tk.Button(self,
-                           width=30,
-                           text="Outcome Summary",
-                           command=lambda: controller.show_frame(OutcomeSummaryReport))
-        button.grid(row=4,
-                    column=2,
-                    sticky='E')
-
-        button = tk.Button(self,
-                           width=30,
-                           text="Outcome Detail",
-                           command=lambda: controller.show_frame(OutcomeDetailReport))
-        button.grid(row=4,
-                    column=3,
-                    sticky='E')
-
-        button = tk.Button(self,
-                           width=30,
-                           text="Exit to Main",
-                           command=lambda: controller.show_frame(StartPage))
-        button.grid(row=6,
-                    column=3,
-                    sticky='E')
-
+        tk.Button(self,
+                  width=30,
+                  text="Outcome Summary",
+                  bg='dark green',
+                  fg='white',
+                  command=lambda: controller.show_frame(OutcomeSummaryReport)).grid(row=5,
+                                                                                    column=2,
+                                                                                    sticky='E')
+        tk.Button(self,
+                  width=30,
+                  text="Outcome Detail",
+                  bg='dark green',
+                  fg='white',
+                  command=lambda: controller.show_frame(OutcomeDetailReport)).grid(row=5,
+                                                                                   column=3,
+                                                                                   sticky='E')
         for child in self.winfo_children():
             child.grid_configure(padx=10,
                                  pady=10)
@@ -2930,87 +3294,111 @@ class PlantingPlanReport(tk.Frame):
 
     def set_labels(self, controller):
 
-        label = tk.Label(self,
-                         text="Current Garden Plan",
-                         font=LARGE_FONT)
-        label.grid(row=1,
-                   column=1,
-                   columnspan=6)
+        tk.Label(self,
+                 text="Current Garden Plan",
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  width=15,
+                  text="Back to Reports",
+                  bg='white',
+                  fg='dark red',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=2,
+                                                                           column=6)
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
+        tk.Label(self,
+                 text='Click "Refresh" to reflect changes: ',
+                 anchor='e',
+                 justify=tk.RIGHT,
+                 font=MEDIUM_FONT,
+                 bg='white').grid(row=3,
+                                  column=1,
+                                  columnspan=2)
+        tk.Button(self,
+                  width=10,
+                  text="Refresh",
+                  anchor='center',
+                  justify=tk.CENTER,
+                  bg='white',
+                  fg='dark green',
+                  font='Helvetica 10',
+                  command=lambda: self.export_planting_plan(controller)).grid(row=3,
+                                                                              column=3)
+        tk.Button(self,
+                  width=15,
+                  text="Export (save) to CSV",
+                  anchor='w',
+                  justify=tk.LEFT,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.export_planting_plan(controller)).grid(row=3,
+                                                                              column=5)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=4,
+                                  column=1)
 
-        label = tk.Label(self,
-                         text='Click "Refresh" to reflect changes: ',
-                         anchor='e',
-                         justify=tk.RIGHT)
-        label.grid(row=1,
-                   column=7,
-                   columnspan=2)
+        tk.Label(self,
+                 text="Plant",
+                 bg='white').grid(row=5,
+                                   column=1)
 
-        button = tk.Button(self,
-                           text="Refresh",
-                           anchor='w',
-                           justify=tk.LEFT,
-                           command=lambda: self.refresh_planting_plan(controller))
-        button.grid(row=1,
-                    column=9)
+        tk.Label(self,
+                 text="Season",
+                 bg='white').grid(row=5,
+                                   column=2)
 
-        button = tk.Button(self,
-                           text="Export (save) to CSV",
-                           anchor='w',
-                           justify=tk.LEFT,
-                           command=lambda: self.export_planting_plan(controller))
-        button.grid(row=1,
-                    column=10)
+        tk.Label(self,
+                 text="Zone",
+                 bg='white').grid(row=5,
+                                   column=3)
 
-        label = tk.Label(self,
-                         text=" ",
-                         font=LARGE_FONT)
-        label.grid(row=2,
-                   column=2)
+        tk.Label(self,
+                 text="Plot",
+                 bg='white').grid(row=5,
+                                   column=4)
 
-        label = tk.Label(self,
-                         text="Plant")
-        label.grid(row=3,
-                   column=1)
+        tk.Label(self,
+                 text=" Space / Seed Pack ",
+                 bg='white').grid(row=5,
+                                   column=5)
 
-        label = tk.Label(self,
-                         text="Season")
-        label.grid(row=3,
-                   column=2)
+        tk.Label(self,
+                 text=" Space / Seedling ",
+                 bg='white').grid(row=5,
+                                   column=6)
 
-        label = tk.Label(self,
-                         text="Zone")
-        label.grid(row=3,
-                   column=3)
+        tk.Label(self,
+                 text=" Depth for Seeds ",
+                 bg='white').grid(row=5,
+                                   column=7)
 
-        label = tk.Label(self,
-                         text="Plot Number")
-        label.grid(row=3,
-                   column=4)
+        tk.Label(self,
+                 text=" Watering Frequency ",
+                 bg='white').grid(row=5,
+                                   column=8)
 
-        label = tk.Label(self,
-                         text="Space per Seed Pack")
-        label.grid(row=3,
-                   column=5)
-
-        label = tk.Label(self,
-                         text="Space per Seedling")
-        label.grid(row=3,
-                   column=6)
-
-        label = tk.Label(self,
-                         text="Depth to Plant Seeds")
-        label.grid(row=3,
-                   column=7)
-
-        label = tk.Label(self,
-                         text="Watering Frequency")
-        label.grid(row=3,
-                   column=8)
-
-        label = tk.Label(self,
-                         text="Days to Harvest")
-        label.grid(row=3,
-                   column=9)
+        tk.Label(self,
+                 text=" Days to Harvest ",
+                 bg='white').grid(row=5,
+                                   column=9)
 
         self.query_plan(controller)
 
@@ -3031,34 +3419,45 @@ class PlantingPlanReport(tk.Frame):
 
             cursor.execute(planting_plan_query)
 
-            for row_number, row in enumerate(cursor, 4):
-                tk.Label(self, text=str(row[1])).grid(column=1, row=row_number)
-                tk.Label(self, text=str(row[2])).grid(column=2, row=row_number)
-                tk.Label(self, text=str(row[3])).grid(column=3, row=row_number)
-                tk.Label(self, text=str(row[4])).grid(column=4, row=row_number)
-                tk.Label(self, text=str(row[5]) + ' inches').grid(column=5, row=row_number)
-                tk.Label(self, text=str(row[6]) + ' inches').grid(column=6, row=row_number)
-                tk.Label(self, text=str(row[7]) + ' inches').grid(column=7, row=row_number)
-                tk.Label(self, text=str(row[8])).grid(column=8, row=row_number)
-                tk.Label(self, text=str(row[9])).grid(column=9, row=row_number)
+            for row_number, row in enumerate(cursor, 6):
+                tk.Label(self,
+                         text=str(row[1]),
+                         bg='white').grid(column=1,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[2]),
+                         bg='white').grid(column=2,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[3]),
+                         bg='white').grid(column=3,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[4]),
+                         bg='white').grid(column=4,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[5]) + ' inches',
+                         bg='white').grid(column=5,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[6]) + ' inches',
+                         bg='white').grid(column=6,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[7]) + ' inches',
+                         bg='white').grid(column=7,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[8]),
+                         bg='white').grid(column=8,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[9]),
+                         bg='white').grid(column=9,
+                                          row=row_number)
 
             this_connection.end_connection()
-
-            label = tk.Label(self,
-                             text=" ")
-            label.grid(row=row_number + 1,
-                       column=2)
-
-            tk.Button(self,
-                      text="Back to Reports Menu",
-                      command=lambda: controller.show_frame(ReportsMenu)).grid(row=row_number + 2,
-                                                                               column=6)
-
-            button = tk.Button(self,
-                               text="Exit to Main",
-                               command=lambda: controller.show_frame(StartPage))
-            button.grid(row=row_number + 2,
-                        column=8)
 
         except:
             error_message = "Error displaying Planting Plan Report"
@@ -3102,70 +3501,119 @@ class PlantsDetailReport(tk.Frame):
     def set_labels(self, controller):
         tk.Label(self,
                  text="All Available Plants",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=1,
-                                       columnspan=6)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  width=15,
+                  text="Back to Reports",
+                  bg='white',
+                  fg='dark red',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=2,
+                                                                           column=6)
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
+
         tk.Label(self,
                  text='Click "Refresh" to reflect changes: ',
                  anchor='e',
-                 justify=tk.RIGHT).grid(row=1,
-                                        column=7,
-                                        columnspan=2)
+                 justify=tk.RIGHT,
+                 font=MEDIUM_FONT,
+                 bg='white').grid(row=3,
+                                  column=1,
+                                  columnspan=2)
+
         tk.Button(self,
+                  width=10,
                   text="Refresh",
-                  anchor='w',
-                  justify=tk.LEFT,
-                  command=lambda: self.refresh_all_plants(controller)).grid(row=1,
-                                                                            column=9)
+                  anchor='center',
+                  justify=tk.CENTER,
+                  bg='white',
+                  fg='dark green',
+                  font='Helvetica 10',
+                  command=lambda: self.refresh_all_plants(controller)).grid(row=3,
+                                                                            column=3)
+
         tk.Button(self,
+                  width=15,
                   text="Export (save) to CSV",
                   anchor='w',
                   justify=tk.LEFT,
-                  command=lambda: self.export_all_plants(controller)).grid(row=1,
-                                                                 column=10)
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.refresh_all_plants(controller)).grid(row=3,
+                                                                            column=5)
         tk.Label(self,
                  text=" ",
-                 font=LARGE_FONT).grid(row=2,
-                                       column=2)
+                 bg='white').grid(row=4,
+                                  column=1)
         tk.Label(self,
-                 text="Plant Name").grid(row=3,
-                                         column=2)
+                 text="Plant",
+                 bg='white').grid(row=5,
+                                   column=1)
         tk.Label(self,
-                 text="In Plan?").grid(row=3,
-                                       column=3)
+                 text="In Plan?",
+                 bg='white').grid(row=5,
+                                   column=2)
         tk.Label(self,
-                 text="Crop Group").grid(row=3,
-                                         column=4)
+                 text=" Crop Group ",
+                 bg='white').grid(row=5,
+                                   column=3)
         tk.Label(self,
-                 text="Sun").grid(row=3,
-                                  column=5)
+                 text=" Sun Required ",
+                 bg='white').grid(row=5,
+                                   column=4)
         tk.Label(self,
-                 text="Soil Moisture").grid(row=3,
-                                            column=6)
+                 text=" Soil Moisture ",
+                 bg='white').grid(row=5,
+                                   column=5)
         tk.Label(self,
-                 text="Space per Seed Pack").grid(row=3,
-                                                  column=7)
+                 text=" Space / Seed Pack ",
+                 bg='white').grid(row=5,
+                                   column=6)
         tk.Label(self,
-                 text="Space Per Seedling").grid(row=3,
-                                                 column=8)
+                 text=" Space / Seedling ",
+                 bg='white').grid(row=5,
+                                   column=7)
         tk.Label(self,
-                 text="Depth Requirement").grid(row=3,
-                                                column=9)
+                 text=" Depth Requirement ",
+                 bg='white').grid(row=5,
+                                   column=8)
         tk.Label(self,
-                 text="Watering Frequency").grid(row=3,
-                                                 column=10)
+                 text=" Watering Frequency ",
+                 bg='white').grid(row=5,
+                                   column=9)
         tk.Label(self,
-                 text="Frost Tolerance").grid(row=3,
-                                              column=11)
+                 text=" Frost Tolerance ",
+                 bg='white').grid(row=5,
+                                   column=10)
         tk.Label(self,
-                 text="Time to Harvest").grid(row=3,
-                                              column=12)
+                 text=" Days to Harvest ",
+                 bg='white').grid(row=5,
+                                   column=11)
         tk.Label(self,
-                 text="Plant in Spring?").grid(row=3,
-                                               column=13)
+                 text="Plant in Spring?",
+                 bg='white').grid(row=5,
+                                   column=12)
         tk.Label(self,
-                 text="Plant in Fall?").grid(row=3,
-                                             column=14)
+                 text="Plant in Fall?",
+                 bg='white').grid(row=5,
+                                   column=13)
         self.query_all_plants(controller)
 
     def reset_grid(self):
@@ -3186,38 +3634,62 @@ class PlantsDetailReport(tk.Frame):
 
             cursor.execute(plant_detail_query)
 
-            for row_number, row in enumerate(cursor, 4):
-                tk.Label(self, text=str(row[1])).grid(column=2, row=row_number)
-                tk.Label(self, text=str(row[2])).grid(column=3, row=row_number)
-                tk.Label(self, text=str(row[3])).grid(column=4, row=row_number)
-                tk.Label(self, text=str(row[4])).grid(column=5, row=row_number)
-                tk.Label(self, text=str(row[5])).grid(column=6, row=row_number)
-                tk.Label(self, text=str(row[6]) + ' inches').grid(column=7, row=row_number)
-                tk.Label(self, text=str(row[7]) + ' inches').grid(column=8, row=row_number)
-                tk.Label(self, text=str(row[8]) + ' inches').grid(column=9, row=row_number)
-                tk.Label(self, text=str(row[9])).grid(column=10, row=row_number)
-                tk.Label(self, text=str(row[10])).grid(column=11, row=row_number)
-                tk.Label(self, text=str(row[11]) + ' days').grid(column=12, row=row_number)
-                tk.Label(self, text=str(row[12])).grid(column=13, row=row_number)
-                tk.Label(self, text=str(row[13])).grid(column=14, row=row_number)
+            for row_number, row in enumerate(cursor, 6):
+                tk.Label(self,
+                         text=str(row[1]),
+                         bg='white').grid(column=1,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[2]),
+                         bg='white').grid(column=2,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[3]),
+                         bg='white').grid(column=3,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[4]),
+                         bg='white').grid(column=4,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[5]),
+                         bg='white').grid(column=5,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[6]) + ' inches',
+                         bg='white').grid(column=6,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[7]) + ' inches',
+                         bg='white').grid(column=7,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[8]) + ' inches',
+                         bg='white').grid(column=8,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[9]),
+                         bg='white').grid(column=9,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[10]),
+                         bg='white').grid(column=10,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[11]) + ' days',
+                         bg='white').grid(column=11,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[12]),
+                         bg='white').grid(column=12,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[13]),
+                         bg='white').grid(column=13,
+                                          row=row_number)
 
             this_connection.end_connection()
 
-            label = tk.Label(self,
-                             text=" ",
-                             font=LARGE_FONT)
-            label.grid(row=row_number + 1,
-                       column=2)
-
-            tk.Button(self,
-                      text="Back to Reports Menu",
-                      command=lambda: controller.show_frame(ReportsMenu)).grid(row=row_number + 2,
-                                                                               column=6)
-
-            tk.Button(self,
-                      text="Exit to Main",
-                      command=lambda: controller.show_frame(StartPage)).grid(row=row_number + 2,
-                                                                             column=8)
         except:
             error_message = "Error displaying Plant Detail Report"
             controller.open_popup(controller,
@@ -3227,7 +3699,8 @@ class PlantsDetailReport(tk.Frame):
 
         try:
 
-            self.header = ["Plant Name",
+            self.header = ["Plant ID",
+                           "Plant Name",
                            "In Plan?",
                            "Crop Group",
                            "Sun Required",
@@ -3237,7 +3710,7 @@ class PlantsDetailReport(tk.Frame):
                            "Depth Requirement",
                            "Watering Frequency",
                            "Frost Tolerance",
-                           "Time to Harvest",
+                           "Days to Harvest",
                            "Plant in Spring",
                            "Plant in Fall"]
 
@@ -3264,64 +3737,112 @@ class OutcomeDetailReport(tk.Frame):
 
         tk.Label(self,
                  text="Outcome Detail Report",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=1,
-                                       columnspan=6)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  width=15,
+                  text="Back to Reports",
+                  bg='white',
+                  fg='dark red',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=2,
+                                                                           column=6)
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
+
         tk.Label(self,
                  text='Click "Refresh" to reflect changes: ',
                  anchor='e',
-                 justify=tk.RIGHT).grid(row=1,
-                                        column=7,
-                                        columnspan=2)
+                 justify=tk.RIGHT,
+                 font=MEDIUM_FONT,
+                 bg='white').grid(row=3,
+                                  column=1,
+                                  columnspan=2)
+
         tk.Button(self,
+                  width=10,
                   text="Refresh",
-                  anchor='w',
-                  justify=tk.LEFT,
-                  command=lambda: self.refresh_outcome_detail(controller)).grid(row=1,
-                                                                                column=9)
+                  anchor='center',
+                  justify=tk.CENTER,
+                  bg='white',
+                  fg='dark green',
+                  font='Helvetica 10',
+                  command=lambda: self.refresh_outcome_detail(controller)).grid(row=3,
+                                                                                column=3)
+
         tk.Button(self,
+                  width=15,
                   text="Export (save) to CSV",
                   anchor='w',
                   justify=tk.LEFT,
-                  command=lambda: self.export_outcome_detail(controller)).grid(row=1,
-                                                                     column=10)
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.export_outcome_detail(controller)).grid(row=3,
+                                                                               column=5)
         tk.Label(self,
-                 text=" ").grid(row=2,
-                                column=10,
-                                columnspan=2)
+                 text=" ",
+                 bg='white').grid(row=4,
+                                  column=1)
         tk.Label(self,
-                 text="Plant Set ID").grid(row=3,
-                                           column=1)
+                 text="Plant Set ID",
+                 bg='white').grid(row=5,
+                                   column=1)
         tk.Label(self,
-                 text="Season").grid(row=3,
-                                     column=2)
+                 text="Season",
+                 bg='white').grid(row=5,
+                                   column=2)
         tk.Label(self,
-                 text="Plant").grid(row=3,
-                                    column=3)
+                 text="Plant",
+                 bg='white').grid(row=5,
+                                   column=3)
         tk.Label(self,
-                 text="Zone").grid(row=3,
+                 text="Zone",
+                 bg='white').grid(row=5,
                                    column=4)
         tk.Label(self,
-                 text="Plot Number").grid(row=3,
-                                          column=5)
+                 text="Plot",
+                 bg='white').grid(row=5,
+                                   column=5)
         tk.Label(self,
-                 text="Set Quantity").grid(row=3,
-                                           column=6)
+                 text=" Set Quantity ",
+                 bg='white').grid(row=5,
+                                   column=6)
         tk.Label(self,
-                 text="Set Type").grid(row=3,
-                                       column=7)
+                 text=" Set Type ",
+                 bg='white').grid(row=5,
+                                   column=7)
         tk.Label(self,
-                 text="Date Planted").grid(row=3,
-                                           column=8)
+                 text=" Date Planted ",
+                 bg='white').grid(row=5,
+                                   column=8)
         tk.Label(self,
-                 text="First Harvest").grid(row=3,
-                                            column=9)
+                 text=" First Harvest ",
+                 bg='white').grid(row=5,
+                                   column=9)
         tk.Label(self,
-                 text="Last Harvest").grid(row=3,
-                                           column=10)
+                 text=" Last Harvest ",
+                 bg='white').grid(row=5,
+                                   column=10)
         tk.Label(self,
-                 text="Outcome").grid(row=3,
-                                      column=11)
+                 text="Outcome",
+                 bg='white').grid(row=5,
+                                   column=11)
+
         self.query_outcome_detail(controller)
 
     def reset_grid(self):
@@ -3342,37 +3863,54 @@ class OutcomeDetailReport(tk.Frame):
 
             cursor.execute(outcome_detail_query)
 
-            for row_number, row in enumerate(cursor, 4):
-                tk.Label(self, text=str(row[0])).grid(column=1, row=row_number)
-                tk.Label(self, text=str(row[1])).grid(column=2, row=row_number)
-                tk.Label(self, text=str(row[2])).grid(column=3, row=row_number)
-                tk.Label(self, text=str(row[3])).grid(column=4, row=row_number)
-                tk.Label(self, text=str(row[4])).grid(column=5, row=row_number)
-                tk.Label(self, text=str(row[5])).grid(column=6, row=row_number)
-                tk.Label(self, text=str(row[6])).grid(column=7, row=row_number)
-                tk.Label(self, text=str(row[7])).grid(column=8, row=row_number)
-                tk.Label(self, text=str(row[8])).grid(column=9, row=row_number)
-                tk.Label(self, text=str(row[9])).grid(column=10, row=row_number)
-                tk.Label(self, text=str(row[10])).grid(column=11, row=row_number)
+            for row_number, row in enumerate(cursor, 6):
+                tk.Label(self,
+                         text=str(row[0]),
+                         bg='white').grid(column=1,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[1]),
+                         bg='white').grid(column=2,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[2]),
+                         bg='white').grid(column=3,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[3]),
+                         bg='white').grid(column=4,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[4]),
+                         bg='white').grid(column=5,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[5]),
+                         bg='white').grid(column=6,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[6]),
+                         bg='white').grid(column=7,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[7]),
+                         bg='white').grid(column=8,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[8]),
+                         bg='white').grid(column=9,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[9]),
+                         bg='white').grid(column=10,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[10]),
+                         bg='white').grid(column=11,
+                                          row=row_number)
 
             this_connection.end_connection()
 
-            label = tk.Label(self,
-                             text=" ")
-            label.grid(row=row_number + 1,
-                       column=2)
-
-            tk.Button(self,
-                      text="Back to Reports Menu",
-                      command=lambda: controller.show_frame(ReportsMenu)).grid(row=row_number + 2,
-                                                                               column=6)
-
-            button = (tk.Button(self,
-                                text="Exit to Main",
-                                command=lambda: controller.show_frame(StartPage)))
-
-            button.grid(row=row_number + 2,
-                        column=8)
         except:
             error_message = "Error displaying Outcome Detail Report"
             controller.open_popup(controller,
@@ -3413,67 +3951,96 @@ class OutcomeSummaryReport(tk.Frame):
 
     def set_labels(self, controller):
 
-        label = tk.Label(self,
-                         text="Outcome Summary Report",
-                         font=LARGE_FONT)
-        label.grid(row=1,
-                   column=1,
-                   columnspan=6)
+        tk.Label(self,
+                 text="Outcome Summary Report",
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
+        tk.Button(self,
+                  width=15,
+                  text="Exit to Main",
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=8,
+                                                                         sticky='EW')
 
-        label = tk.Label(self,
-                         text='Click "Refresh" to reflect changes: ',
-                         anchor='e',
-                         justify=tk.RIGHT)
-        label.grid(row=1,
-                   column=7,
-                   columnspan=2)
+        tk.Button(self,
+                  width=15,
+                  text="Back to Reports",
+                  bg='white',
+                  fg='dark red',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=2,
+                                                                           column=5)
 
-        button = tk.Button(self,
-                           text="Refresh",
-                           anchor='w',
-                           justify=tk.LEFT,
-                           command=lambda: self.refresh_outcome_summary(controller))
-        button.grid(row=1,
-                    column=9)
+        tk.Label(self,
+                 text='Click "Refresh" to reflect changes: ',
+                 anchor='e',
+                 justify=tk.RIGHT,
+                 font=MEDIUM_FONT,
+                 bg='white').grid(row=3,
+                                  column=1,
+                                  columnspan=2)
 
-        button = tk.Button(self,
-                           text="Export (save) to CSV",
-                           anchor='w',
-                           justify=tk.LEFT,
-                           command=lambda: self.export_outcome_summary(controller))
-        button.grid(row=1,
-                    column=10)
+        tk.Button(self,
+                  width=10,
+                  text="Refresh",
+                  anchor='center',
+                  justify=tk.CENTER,
+                  bg='white',
+                  fg='dark green',
+                  font='Helvetica 10',
+                  command=lambda: self.refresh_outcome_summary(controller)).grid(row=3,
+                                                                                 column=3)
 
-        label = tk.Label(self,
-                         text=" ")
-        label.grid(row=2,
-                   column=10,
-                   columnspan=2)
+        tk.Button(self,
+                  width=15,
+                  text="Export (save) to CSV",
+                  anchor='w',
+                  justify=tk.LEFT,
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.export_outcome_summary(controller)).grid(row=3,
+                                                                                column=4)
 
-        label = tk.Label(self,
-                         text="Plant Name")
-        label.grid(row=3,
-                   column=1)
+        tk.Label(self,
+                 text=" ",
+                 bg='white').grid(row=4,
+                                  column=1)
 
-        label = tk.Label(self,
-                         text="Times Planted")
-        label.grid(row=3,
-                   column=2)
+        tk.Label(self,
+                 text="Plant Name",
+                 bg='white').grid(row=5,
+                                   column=1)
 
-        label = tk.Label(self,
-                         text="Success Ratio")
-        label.grid(row=3,
-                   column=3)
+        tk.Label(self,
+                 text=" Times Planted ",
+                 bg='white').grid(row=5,
+                                   column=2)
 
-        label = tk.Label(self,
-                         text="Most Recent Season")
-        label.grid(row=3,
-                   column=4)
+        tk.Label(self,
+                 text=" Success Ratio ",
+                 bg='white').grid(row=5,
+                                   column=3)
 
-        label = tk.Label(self,
-                         text="Most Recent Outcome")
-        label.grid(row=3,
-                   column=5)
+        tk.Label(self,
+                 text=" Most Recent Season ",
+                 bg='white').grid(row=5,
+                                   column=4)
+
+        tk.Label(self,
+                 text=" Most Recent Outcome ",
+                 bg='white').grid(row=5,
+                                   column=5)
 
         self.query_outcome_summary(controller)
 
@@ -3495,37 +4062,35 @@ class OutcomeSummaryReport(tk.Frame):
 
             cursor.execute(outcome_summary_query)
 
-            for row_number, row in enumerate(cursor, 4):
-                tk.Label(self, text=str(row[0])).grid(column=1, row=row_number)
-                tk.Label(self, text=str(row[1])).grid(column=2, row=row_number)
-
+            for row_number, row in enumerate(cursor, 6):
+                tk.Label(self,
+                         text=str(row[0]),
+                         bg='white').grid(column=1,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[1]),
+                         bg='white').grid(column=2,
+                                          row=row_number)
                 if row[2] is None:
                     ratio_text = 'N/A'
                 else:
                     ratio_text = str(row[2]) + '%'
 
-                tk.Label(self, text=ratio_text).grid(column=3, row=row_number)
-                tk.Label(self, text=str(row[3])).grid(column=4, row=row_number)
-                tk.Label(self, text=str(row[4])).grid(column=5, row=row_number)
+                tk.Label(self,
+                         text=ratio_text,
+                         bg='white').grid(column=3,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[3]),
+                         bg='white').grid(column=4,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[4]),
+                         bg='white').grid(column=5,
+                                          row=row_number)
 
             this_connection.end_connection()
 
-            label = tk.Label(self,
-                             text=" ")
-            label.grid(row=row_number + 1,
-                       column=2)
-
-            tk.Button(self,
-                      text="Back to Reports Menu",
-                      command=lambda: controller.show_frame(ReportsMenu)).grid(row=row_number + 2,
-                                                                               column=6)
-
-            button = (tk.Button(self,
-                                text="Exit to Main",
-                                command=lambda: controller.show_frame(StartPage)))
-
-            button.grid(row=row_number + 2,
-                        column=8)
 
         except:
             error_message = "Error displaying Outcome Summary Report"
@@ -3554,6 +4119,7 @@ class OutcomeSummaryReport(tk.Frame):
             controller.open_popup(controller,
                                   error_message)
 
+
 class CompleteYearPage(tk.Frame):
 
     def __init__(self,
@@ -3567,21 +4133,34 @@ class CompleteYearPage(tk.Frame):
         self.set_default_values()
 
         tk.Button(self,
-                  text="Go",
-                  command=lambda: self.import_values(controller)).grid(row=3,
-                                                             column=5,
-                                                             sticky='E')
-
-        tk.Button(self,  # need to update actions
+                  width=15,
                   text="Exit to Main",
-                  command=lambda: controller.show_frame(StartPage)).grid(row=3,
-                                                                         column=7,
-                                                                         sticky='E')
+                  bg='dark red',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
+                                                                         column=9,
+                                                                         sticky='EW')
+
         tk.Button(self,
+                  width=5,
+                  text="Go",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
+                  command=lambda: self.import_values(controller)).grid(row=3,
+                                                                       column=5,
+                                                                       sticky='E')
+
+        tk.Button(self,
+                  width=15,
                   text="Complete",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 10',
                   command=lambda: self.complete_seasons(controller)).grid(row=3,
-                                                                column=9,
-                                                                sticky='E')
+                                                                          column=9,
+                                                                          sticky='E')
         # set default value for spinbox to last year
         current_date = date.today()
         last_year = current_date.year - 1
@@ -3590,55 +4169,70 @@ class CompleteYearPage(tk.Frame):
                                        to=3000,
                                        width=10)
         self.year_spinbox.grid(row=3,
-                               column=3)
+                               column=4)
 
     # set values that display when the window first loads
 
     def set_default_values(self):
         tk.Label(self,
                  text="Complete Year",
-                 font=LARGE_FONT).grid(row=1,
-                                       column=2,
-                                       columnspan=4)
+                 font=LARGE_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=1,
+                                  column=2,
+                                  columnspan=4)
         tk.Label(self,
-                 text="").grid(row=2,
-                               column=2)
+                 text=" ",
+                 bg='white').grid(row=2,
+                                  column=1)
         tk.Label(self,
                  text="Select Year to Finalize:",
+                 font=MEDIUM_FONT,
                  justify=tk.RIGHT,
-                 anchor='e').grid(row=3,
+                 anchor='e',
+                 bg='white').grid(row=3,
                                   column=1,
-                                  columnspan=2)
+                                  columnspan=3)
         tk.Label(self,
-                 text="").grid(row=4,
-                               column=2)
+                 text="",
+                 bg='white').grid(row=4,
+                                  column=2)
         tk.Label(self,
-                 text="Season").grid(row=5,
-                                     column=1)
+                 text="Season",
+                 bg='white').grid(row=5,
+                                  column=1)
         tk.Label(self,
-                 text="Plant Set ID").grid(row=5,
-                                           column=2)
+                 text="Plant Set ID",
+                 bg='white').grid(row=5,
+                                  column=2)
         tk.Label(self,
-                 text="Plant").grid(row=5,
-                                    column=3)
+                 text="Plant",
+                 bg='white').grid(row=5,
+                                  column=3)
         tk.Label(self,
-                 text="Zone").grid(row=5,
-                                   column=4)
+                 text="Zone",
+                 bg='white').grid(row=5,
+                                  column=4)
         tk.Label(self,
-                 text="Plot Number").grid(row=5,
-                                          column=5)
+                 text="Plot Number",
+                 bg='white').grid(row=5,
+                                  column=5)
         tk.Label(self,
-                 text="Date Planted").grid(row=5,
-                                           column=6)
+                 text="Date Planted",
+                 bg='white').grid(row=5,
+                                  column=6)
         tk.Label(self,
-                 text="Last Harvest").grid(row=5,
-                                           column=7)
+                 text="Last Harvest",
+                 bg='white').grid(row=5,
+                                  column=7)
         tk.Label(self,
-                 text="Outcome").grid(row=5,
-                                      column=8)
+                 text="Outcome",
+                 bg='white').grid(row=5,
+                                  column=8)
         tk.Label(self,
-                 text="Season Active").grid(row=5,
-                                            column=9)
+                 text="Season Active",
+                 bg='white').grid(row=5,
+                                  column=9)
 
     def import_values(self, controller):
         try:
@@ -3666,15 +4260,42 @@ class CompleteYearPage(tk.Frame):
                 else:
                     active_status = "No"
 
-                tk.Label(self, text=str(row[2])).grid(column=1, row=row_number)
-                tk.Label(self, text=str(row[3])).grid(column=2, row=row_number)
-                tk.Label(self, text=str(row[4])).grid(column=3, row=row_number)
-                tk.Label(self, text=str(row[6])).grid(column=4, row=row_number)
-                tk.Label(self, text=str(row[7])).grid(column=5, row=row_number)
-                tk.Label(self, text=str(row[8])).grid(column=6, row=row_number)
-                tk.Label(self, text=str(row[9])).grid(column=7, row=row_number)
-                tk.Label(self, text=outcome).grid(column=8, row=row_number)
-                tk.Label(self, text=active_status).grid(column=9, row=row_number)
+                tk.Label(self,
+                         text=str(row[2]),
+                         bg='white').grid(column=1,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[3]),
+                         bg='white').grid(column=2,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[4]),
+                         bg='white').grid(column=3,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[6]),
+                         bg='white').grid(column=4,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[7]),
+                         bg='white').grid(column=5,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[8]),
+                         bg='white').grid(column=6,
+                                          row=row_number)
+                tk.Label(self,
+                         text=str(row[9]),
+                         bg='white').grid(column=7,
+                                          row=row_number)
+                tk.Label(self,
+                         text=outcome,
+                         bg='white').grid(column=8,
+                                          row=row_number)
+                tk.Label(self,
+                         text=active_status,
+                         bg='white').grid(column=9,
+                                          row=row_number)
 
                 self.complete_plant_set = plant_set.PlantSet()
 
@@ -3689,8 +4310,9 @@ class CompleteYearPage(tk.Frame):
             this_connection.end_connection()
 
             tk.Label(self,
-                     text=" ").grid(row=row_number + 1,
-                                    column=2)
+                     text=" ",
+                     bg='white').grid(row=row_number + 1,
+                                      column=2)
 
         except:
             error_message = "Invalid year, please try again."
