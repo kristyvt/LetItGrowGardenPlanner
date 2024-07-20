@@ -22,14 +22,9 @@ class Plant:
         self.depth_requirement = None
         self.depth_to_plant_seeds = None
         self.watering_requirement_id = None
-        self.always_include = None
         self.plant_in_spring = None
         self.plant_in_fall = None
         self.days_to_harvest = None
-        self.indoors_date_range_id = None
-        self.seeds_date_range_id = None
-        self.seedlings_date_range_id = None
-        self.fall_date_range_id = None
         self.plant_active = None
         self.times_succeeded = None
         self.total_times_planted = None
@@ -70,7 +65,7 @@ class Plant:
         # execute stored procedure to add new plant to database using inputs
 
         (cursor.execute
-         ('AddPlant ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?',
+         ('AddPlant ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?',
           [self.plant_name,
            self.plant_in_spring,
            self.plant_in_fall,
@@ -79,16 +74,11 @@ class Plant:
            self.space_required_seeds,
            self.depth_requirement,
            self.depth_to_plant_seeds,
-           self.always_include,
            self.crop_group_id,
            self.sun_id,
            self.soil_moisture_id,
            self.frost_tolerance_id,
-           self.watering_requirement_id,
-           self.indoors_date_range_id,
-           self.seeds_date_range_id,
-           self.seedlings_date_range_id,
-           self.fall_date_range_id]))
+           self.watering_requirement_id]))
 
         cursor.commit()  # finalize entry into table
 
@@ -113,7 +103,6 @@ class Plant:
                   sun_id,
                   soil_moisture_id,
                   crop_nitrogen_level,
-                  always_include,
                   plant_in_spring,
                   plant_in_fall,
                   frost_tolerance_id,
@@ -128,7 +117,6 @@ class Plant:
         self.sun_id = sun_id
         self.soil_moisture_id = soil_moisture_id
         self.crop_nitrogen_level = crop_nitrogen_level
-        self.always_include = always_include
         self.plant_in_spring = plant_in_spring
         self.plant_in_fall = plant_in_fall
         self.frost_tolerance_id = frost_tolerance_id

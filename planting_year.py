@@ -55,7 +55,6 @@ class PlantingYear:
             sun_id = r[5]
             soil_moisture_id = r[6]
             crop_nitrogen_level = r[7]
-            always_include = r[8]
             plant_in_spring = r[9]
             plant_in_fall = r[10]
             frost_tolerance_id = r[11]
@@ -71,7 +70,6 @@ class PlantingYear:
                                                    sun_id,
                                                    soil_moisture_id,
                                                    crop_nitrogen_level,
-                                                   always_include,
                                                    plant_in_spring,
                                                    plant_in_fall,
                                                    frost_tolerance_id,

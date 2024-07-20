@@ -45,7 +45,6 @@ class Plan:
             sun_id = r[5]
             soil_moisture_id = r[6]
             crop_nitrogen_level = r[7]
-            always_include = r[8]
             plant_in_spring = r[9]
             plant_in_fall = r[10]
             frost_tolerance_id = r[11]
@@ -61,7 +60,6 @@ class Plan:
                                                    sun_id,
                                                    soil_moisture_id,
                                                    crop_nitrogen_level,
-                                                   always_include,
                                                    plant_in_spring,
                                                    plant_in_fall,
                                                    frost_tolerance_id,
@@ -260,7 +258,6 @@ class Plan:
             sun_id = None
             soil_moisture_id = None
             crop_nitrogen_level = None
-            always_include = None
             plant_in_spring = None
             plant_in_fall = None
             frost_tolerance_id = None
@@ -275,7 +272,6 @@ class Plan:
                     sun_id = p.sun_id
                     soil_moisture_id = p.soil_moisture_id
                     crop_nitrogen_level = p.crop_nitrogen_level
-                    always_include = p.always_include
                     plant_in_spring = p.plant_in_spring
                     plant_in_fall = p.plant_in_fall
                     frost_tolerance_id = p.frost_tolerance_id
@@ -475,7 +471,6 @@ class Plan:
         sun_id = None
         soil_moisture_id = None
         crop_nitrogen_level = None
-        always_include = None
         plant_in_spring = None
         plant_in_fall = None
         frost_tolerance_id = None
@@ -496,7 +491,6 @@ class Plan:
                 sun_id = p.sun_id
                 soil_moisture_id = p.soil_moisture_id
                 crop_nitrogen_level = p.crop_nitrogen_level
-                always_include = p.always_include
                 plant_in_spring = p.plant_in_spring
                 plant_in_fall = p.plant_in_fall
                 frost_tolerance_id = p.frost_tolerance_id
@@ -639,7 +633,6 @@ class Plan:
         sun_id = None
         soil_moisture_id = None
         crop_nitrogen_level = None
-        always_include = None
         plant_in_spring = None
         plant_in_fall = None
         frost_tolerance_id = None
@@ -656,7 +649,6 @@ class Plan:
                 sun_id = p.sun_id
                 soil_moisture_id = p.soil_moisture_id
                 crop_nitrogen_level = p.crop_nitrogen_level
-                always_include = p.always_include
                 plant_in_spring = p.plant_in_spring
                 plant_in_fall = p.plant_in_fall
                 frost_tolerance_id = p.frost_tolerance_id
