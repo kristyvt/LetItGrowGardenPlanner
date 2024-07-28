@@ -1,15 +1,22 @@
-import tkinter as tk
-import os
+# built in libraries
+import os  # to locate file path for images
+import tkinter as tk  # interface and formatting libraries
 from tkinter import ttk
+from tkcalendar import DateEntry
+from datetime import date, datetime
+
+# custom task handling libraries
 import data_connection  # manages connection to server
+import validate  # manages all data validation
+import export_query  # exports report data to CSV
+
+# custom class objects
 import my_season
 import plan
 import plant
 import plant_set
-import plot
-import export_query
 import planting_year
-from datetime import date
+import plot
 
 LARGE_FONT = ("Helvetica", 16, 'bold')
 MEDIUM_FONT = ("Helvetica", 14)
@@ -137,7 +144,9 @@ class Window(tk.Tk):
         tk.Tk.__init__(self,
                        *args,
                        **kwargs)
+        self.geometry("1250x500")
         container = tk.Frame(self)
+        container.configure(background='white')
 
         # title appearing at the top of all primary windows
         self.title("Let it Grow Garden Planner")
@@ -157,8 +166,6 @@ class Window(tk.Tk):
                                     weight=1)
         container.grid_columnconfigure(0,
                                        weight=1)
-
-        self.geometry("1000x400")
 
         # create a dictionary of frames
         # each frame is a primary window
@@ -190,13 +197,6 @@ class Window(tk.Tk):
 
             self.frames[F] = frame
 
-            # set background color for all frames
-            frame.configure(background='white')
-
-            frame.grid(row=0,
-                       column=0,
-                       sticky="nsew")
-
         # set initial window as the start page
         self.show_frame(StartPage)
 
@@ -204,6 +204,13 @@ class Window(tk.Tk):
     # generally used with buttons
     def show_frame(self, cont):
         frame = self.frames[cont]
+        # set background color
+        frame.configure(background='white')
+        frame.grid(row=0,
+                   column=0,
+                   sticky="nsew",
+                   padx=25,
+                   pady=25)
         frame.tkraise()
 
     # function to close the window which exits the program
@@ -219,8 +226,10 @@ class Window(tk.Tk):
     def open_popup(self, controller, message):
         # set formatting for just this window
         top = tk.Toplevel(self)
-        top.geometry("500x250")
-        top.configure(bg='white')
+        top.geometry("300x200")
+        top.configure(bg='white',
+                      padx=25,
+                      pady=25)
 
         # set title for just this window
         top.title("Notification")
@@ -609,57 +618,151 @@ class AddPlantPage(tk.Frame):
     # and pass them to the function to export to database
     def add_new_plant(self, controller):
 
-        # variables to store inputs and selections
-        # all set to null to avoid errors if left blank
-
-        self.plant_name = None
-        self.crop_group_id = None
-        self.sun_id = None
-        self.soil_moisture_id = None
-        self.frost_tolerance_id = None
-        self.space_required_seeds = None
         self.space_required_seedling = None
+        self.space_required_seeds = None
         self.depth_requirement = None
         self.depth_to_plant_seeds = None
-        self.watering_requirement_id = None
-        self.plant_in_spring = None
-        self.plant_in_fall = None
         self.days_to_harvest = None
-        self.plant_active = None
-        self.times_succeeded = None
-        self.total_times_planted = None
 
         try:
 
-            # set variables to values input onscreen
+            # set to None so that either can be blank
+            self.plant_in_spring = None
+            self.plant_in_fall = None
 
-            self.plant_name = self.plant_name_entry.get()
-            crop_group_text = self.crop_group_combo.selection
-            self.crop_group_id = \
-                int(self.crop_group_combo.get_id(crop_group_query,
-                                                 crop_group_text))
-            sun_id_text = self.sun_combo.selection
-            self.sun_id = int(self.sun_combo.get_id(sun_query,
-                                                    sun_id_text))
-            soil_moisture_text = self.soil_moisture_combo.selection
-            self.soil_moisture_id = \
-                int(self.soil_moisture_combo.get_id(soil_moisture_query,
-                                                    soil_moisture_text))
-            frost_tolerance_text = self.frost_tolerance_combo.selection
-            self.frost_tolerance_id = \
-                int(self.frost_tolerance_combo.get_id(frost_tolerance_query,
-                                                      frost_tolerance_text))
+            # check that at least one season selection was made
+            self.plant_in_spring = bool(self.plant_spring.get())
+            self.plant_in_fall = bool(self.plant_fall.get())
+
+            # error if neither season was checked
+            if self.plant_in_spring is False and self.plant_in_fall is False:
+                error_message = ("Missing Spring or Fall selection"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # set variables to values input onscreen
+            # after data validation of each
+            data_to_validate = validate.Validate(self.plant_name_entry.get())
+            if data_to_validate.validate_text():
+                self.plant_name = self.plant_name_entry.get()
+
+            elif data_to_validate.validate_text() == False:
+                error_message = ("Invalid Plant Name entered"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                error_message = ("No Plant Name entered"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            data_to_validate = validate.Validate(self.crop_group_combo.selection)
+            if data_to_validate.validate_text():
+                crop_group_text = self.crop_group_combo.selection
+                self.crop_group_id = int(self.crop_group_combo.get_id(crop_group_query,
+                                                                      crop_group_text))
+
+            elif data_to_validate.validate_text() == False:
+                error_message = ("Invalid or missing Crop Group entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                error_message = ("Invalid or missing Crop Group entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            data_to_validate = validate.Validate(self.sun_combo.selection)
+            if data_to_validate.validate_text():
+                sun_id_text = self.sun_combo.selection
+                self.sun_id = int(self.sun_combo.get_id(sun_query,
+                                                        sun_id_text))
+
+            elif data_to_validate.validate_text() == False:
+                error_message = ("Invalid or missing Sun entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                error_message = ("Invalid or missing Sun entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            data_to_validate = validate.Validate(self.soil_moisture_combo.selection)
+            if data_to_validate.validate_text():
+                soil_moisture_text = self.soil_moisture_combo.selection
+                self.soil_moisture_id = \
+                    int(self.soil_moisture_combo.get_id(soil_moisture_query,
+                                                        soil_moisture_text))
+
+            elif data_to_validate.validate_text() == False:
+                error_message = ("Invalid or missing Soil Moisture entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                error_message = ("Invalid or missing Soil Moisture entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            data_to_validate = validate.Validate(self.frost_tolerance_combo.selection)
+            if data_to_validate.validate_text():
+                frost_tolerance_text = self.frost_tolerance_combo.selection
+                self.frost_tolerance_id = \
+                    int(self.frost_tolerance_combo.get_id(frost_tolerance_query,
+                                                          frost_tolerance_text))
+
+            elif data_to_validate.validate_text() == False:
+                error_message = ("Invalid or missing Frost Tolerance entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                error_message = ("Invalid or missing Frost Tolerance entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            data_to_validate = validate.Validate(self.watering_requirement_combo.selection)
+            if data_to_validate.validate_text():
+                watering_requirement_text = self.watering_requirement_combo.selection
+                self.watering_requirement_id = \
+                    int(self.watering_requirement_combo.get_id(watering_requirement_query,
+                                                               watering_requirement_text))
+
+            elif data_to_validate.validate_text() == False:
+                error_message = ("Invalid or missing Watering Requirement entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                error_message = ("Invalid or missing Watering Requirement entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
             self.space_required_seeds = int(self.space_per_seedpack_entry.get())
             self.space_required_seedling = int(self.space_per_seedling_entry.get())
             self.depth_requirement = int(self.depth_per_plant_entry.get())
             self.depth_to_plant_seeds = float(self.depth_for_seeds_entry.get())
-            watering_requirement_text = self.watering_requirement_combo.selection
-            self.watering_requirement_id = \
-                int(self.watering_requirement_combo.get_id(watering_requirement_query,
-                                                           watering_requirement_text))
-
-            self.plant_in_spring = bool(self.plant_spring.get())
-            self.plant_in_fall = bool(self.plant_fall.get())
             self.days_to_harvest = int(self.days_to_harvest_entry.get())
 
             # create a new plant object to insert into database
@@ -689,13 +792,15 @@ class AddPlantPage(tk.Frame):
 
             # exception handling if entry into database fails
             else:
-                error_message = "Error inserting into database, new plant not added."
+                error_message = ("Error inserting into database"
+                                 "\nNew plant not added.")
                 controller.open_popup(controller,
                                       error_message)
 
         # exception handling for invalid data entry
-        except TypeError:
-            error_message = "Missing or invalid data, new plant not added."
+        except ValueError:
+            error_message = ("Other Type error"
+                             "\nNew plant not added.")
             controller.open_popup(controller,
                                   error_message)
 
@@ -850,7 +955,6 @@ class GardenPlanPage(tk.Frame):
                  bg='white').grid(row=13,
                                   column=2,
                                   columnspan=4)
-
 
         # setup spinbox with highest plot ID number as max value
         self.plot_stat_list = []
@@ -1212,8 +1316,8 @@ class EditSetPage(tk.Frame):
                  text="Select Plant Name:",
                  bg='white',
                  font=MEDIUM_FONT).grid(row=3,
-                                   column=1,
-                                   columnspan=1)
+                                        column=1,
+                                        columnspan=1)
 
         self.plant_combo = DropDown(self,
                                     planting_plan_query,
@@ -1346,44 +1450,62 @@ class EditSetPage(tk.Frame):
                                  column=2,
                                  columnspan=2)
 
+        # start "date planted" label and date entry
+
         tk.Label(self,
                  text="Date Planted:",
                  bg='white').grid(row=7,
-                                  column=5,
-                                  columnspan=2)
+                                  column=6,
+                                  columnspan=1)
 
-        self.date_planted_entry = tk.Entry(self,
-                                           width=10,
-                                           bg='white',
-                                           relief='solid')
+        self.date_planted_entry = DateEntry(self,
+                                            width=10,
+                                            background="green",
+                                            foreground="white",
+                                            bd=2)
+
         self.date_planted_entry.grid(row=7,
                                      column=7)
 
-        tk.Label(self,
-                 text="First Harvest Date (MM/DD/YY):",
-                 bg='white').grid(row=8,
-                                  column=5,
-                                  columnspan=2)
+        # clear date entry so that it's blank instead of current date
+        self.date_planted_entry.delete(0, 'end')
 
-        self.first_harvest_entry = tk.Entry(self,
-                                            width=10,
-                                            bg='white',
-                                            relief='solid')
+        # end "date planted" label and date entry
+        # start "first harvest date" label and date entry
+
+        tk.Label(self,
+                 text="First Harvest Date:",
+                 bg='white').grid(row=8,
+                                  column=6,
+                                  columnspan=1)
+        self.first_harvest_entry = DateEntry(self,
+                                             width=10,
+                                             background="green",
+                                             foreground="white",
+                                             bd=2)
         self.first_harvest_entry.grid(row=8,
                                       column=7)
+        self.first_harvest_entry.delete(0, 'end')
+
+        # end "first harvest date" label and date entry
+        # start "last harvest date" label and date entry
 
         tk.Label(self,
-                 text="Last Harvest Date (MM/DD/YY)",
-                 bg='white', ).grid(row=9,
-                                    column=5,
-                                    columnspan=2)
-
-        self.last_harvest_entry = tk.Entry(self,
-                                           width=10,
-                                           bg='white',
-                                           relief='solid')
+                 text="Last Harvest Date:",
+                 bg='white').grid(row=9,
+                                  column=6,
+                                  columnspan=1)
+        self.last_harvest_entry = DateEntry(self,
+                                            width=10,
+                                            background="green",
+                                            foreground="white",
+                                            bd=2)
         self.last_harvest_entry.grid(row=9,
                                      column=7)
+
+        self.last_harvest_entry.delete(0, 'end')
+
+        # end "last harvest date" label and date entry
 
         # Function to retrieve selection from the Outcome Radio button
 
@@ -1461,67 +1583,139 @@ class EditSetPage(tk.Frame):
         self.plant_name = None
         self.season_text = None
 
+    def validate_plant_selection(self, controller):
+
+        plant = self.plant_combo.selection
+
+        if plant == "" or plant is None:
+            print('No plant entered')
+            error_message = ("Missing or invalid Plant Name selection."
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
+
+        else:
+            test_plant = validate.Validate(self.plant_combo.selection)
+            if test_plant.validate_text():
+                print('Plant selection validation passed')
+                plant = self.plant_combo.selection
+                return plant
+
+            else:
+                error_message = ("Missing or invalid Plant Name selection"
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
     def import_plant_set(self, controller):
 
-        self.saved_plant_set = plant_set.PlantSet()
-        plant_selection = self.plant_combo.selection
-        season_selection = self.season_combo.selection
-        set_to_check = 0
+        try:
 
-        q_plant_set_id = self.saved_plant_set.import_plant_set(plant_selection,
-                                                               season_selection,
-                                                               set_to_check)
+            self.saved_plant_set = plant_set.PlantSet()
 
-        if q_plant_set_id is None and set_to_check == 0:
+            # begin getting and validating plant selection
 
-            error_text = "Plant Not Found"
-            controller.open_popup(controller, error_text)
+            validated_plant = self.validate_plant_selection(controller)
+            if validated_plant:
+                plant_selection = self.plant_combo.selection
+            else:
+                raise ValueError
 
-            self.set_default_values(controller)
+            # end getting and validating plant selection
 
-        elif q_plant_set_id is None and set_to_check > 0:
+            season_selection = self.season_combo.selection
+            set_to_check = 0
 
-            error_text = "Last in Season"
-            controller.open_popup(controller, error_text)
+            q_plant_set_id = self.saved_plant_set.import_plant_set(plant_selection,
+                                                                   season_selection,
+                                                                   set_to_check)
 
-        else:
-            self.plant_set_id.set(q_plant_set_id)
-            self.saved_plant_set.plant_set_id = self.plant_set_id.get()
+            if q_plant_set_id is None and set_to_check == 0:
 
-            self.saved_plot_id = self.saved_plant_set.plot_id
+                error_text = "Plant Not Found"
+                controller.open_popup(controller, error_text)
 
-            self.reset_values(controller)
+                self.set_default_values(controller)
+
+            elif q_plant_set_id is None and set_to_check > 0:
+
+                error_text = "Last in Season"
+                controller.open_popup(controller, error_text)
+
+            else:
+                self.plant_set_id.set(q_plant_set_id)
+                self.saved_plant_set.plant_set_id = self.plant_set_id.get()
+
+                self.saved_plot_id = self.saved_plant_set.plot_id
+
+                self.reset_values(controller)
+        except:
+            if ValueError:
+                print("Value Error")
+                pass
+            else:
+                error_message = "Other error, plant set not found."
+                controller.open_popup(controller,
+                                      error_message)
 
     def import_next_plant_set(self, controller):
+        try:
 
-        self.saved_plant_set = plant_set.PlantSet()
-        plant_selection = self.plant_combo.selection
-        season_selection = self.season_combo.selection
-        set_to_check = self.plant_set_id.get()
+            print(self.saved_plant_set.plant_set_id)
 
-        q_plant_set_id = self.saved_plant_set.import_plant_set(plant_selection,
-                                                               season_selection,
-                                                               set_to_check)
+            self.current_plant_set = self.saved_plant_set
 
-        if q_plant_set_id is None and set_to_check == 0:
+            self.saved_plant_set = plant_set.PlantSet()
 
-            error_text = "Plant Not Found"
-            controller.open_popup(controller, error_text)
+            # begin getting and validating plant selection
 
-            self.set_default_values(controller)
+            validated_plant = self.validate_plant_selection(controller)
+            if validated_plant:
+                plant_selection = self.plant_combo.selection
+            else:
+                raise ValueError
 
-        elif q_plant_set_id is None and set_to_check > 0:
+            # end getting and validating plant selection
+            season_selection = self.season_combo.selection
+            set_to_check = self.plant_set_id.get()
 
-            error_text = "Last in Season"
-            controller.open_popup(controller, error_text)
+            q_plant_set_id = self.saved_plant_set.import_plant_set(plant_selection,
+                                                                   season_selection,
+                                                                   set_to_check)
 
-        else:
-            self.plant_set_id.set(q_plant_set_id)
-            self.saved_plant_set.plant_set_id = self.plant_set_id.get()
+            if q_plant_set_id is None and set_to_check == 0:
 
-            self.saved_plot_id = self.saved_plant_set.plot_id
+                error_text = "Plant Not Found"
+                controller.open_popup(controller, error_text)
 
-            self.reset_values(controller)
+                self.set_default_values(controller)
+
+            elif q_plant_set_id is None and set_to_check > 0:
+
+                error_text = "Last in Season"
+                controller.open_popup(controller, error_text)
+
+                self.saved_plant_set = self.current_plant_set
+
+            else:
+                self.plant_set_id.set(q_plant_set_id)
+                self.saved_plant_set.plant_set_id = self.plant_set_id.get()
+
+                self.saved_plot_id = self.saved_plant_set.plot_id
+
+                self.reset_values(controller)
+
+        except:
+            if ValueError:
+                print("Value Error in Import")
+                pass
+            else:
+                error_message = "Other error, plant set not found."
+                controller.open_popup(controller,
+                                      error_message)
+
 
     def reset_values(self, controller):
 
@@ -1543,15 +1737,15 @@ class EditSetPage(tk.Frame):
 
             self.date_planted_entry.delete(0, 'end')
             if self.saved_plant_set.planted_date is not None:
-                self.date_planted_entry.insert(0, self.saved_plant_set.planted_date)
+                self.date_planted_entry.set_date(self.saved_plant_set.planted_date)
 
             self.first_harvest_entry.delete(0, 'end')
             if self.saved_plant_set.first_harvest_date is not None:
-                self.first_harvest_entry.insert(0, self.saved_plant_set.first_harvest_date)
+                self.first_harvest_entry.set_date(self.saved_plant_set.first_harvest_date)
 
             self.last_harvest_entry.delete(0, 'end')
             if self.saved_plant_set.last_harvest_date is not None:
-                self.last_harvest_entry.insert(0, self.saved_plant_set.last_harvest_date)
+                self.last_harvest_entry.set_date(self.saved_plant_set.last_harvest_date)
 
             if self.saved_plant_set.outcome == 1:
                 self.radio2.select()
@@ -1568,13 +1762,26 @@ class EditSetPage(tk.Frame):
 
         try:
 
-            plant = self.plant_combo.selection
-            self.plant_id = self.plant_combo.get_id(plant_name_query,
-                                                    plant)
+            # begin getting and validating plant selection
+
+            plant = self.validate_plant_selection(controller)
+
+            if plant:
+                self.plant_id = int(self.plant_combo.get_id(plant_name_query,
+                                                            plant))
+                print('Plant ID selected is: ' + str(self.plant_id))
+            else:
+                print('No Plant ID')
+                raise ValueError
+
+            # end getting and validating plant selection
 
             set_season = self.season_combo.selection
+
             self.season_id = self.season_combo.get_id(seasons_query,
                                                       set_season)
+
+            print("season ID is " + str(self.season_id))
 
             if self.season_id is None:
                 this_connection = data_connection.Connection()  # connect to server
@@ -1587,9 +1794,13 @@ class EditSetPage(tk.Frame):
 
             self.set_quantity = self.quantity_entry.get()
 
+            print('set quantity is ' + str(self.set_quantity))
+
             self.plot_id = self.plot_entry.get()
+            print('plot is ' + str(self.set_quantity))
 
             set_type = self.set_type_combo.selection
+            print('set type to check is ' + str(set_type))
             self.set_type_id = self.set_type_combo.get_id(set_type_query,
                                                           set_type)
             if self.set_type_id is None:
@@ -1601,34 +1812,183 @@ class EditSetPage(tk.Frame):
                     if self.saved_plant_set.set_type == r[1]:
                         self.set_type_id = r[0]
 
+            print("Set Type ID is " + str(self.set_type_id))
+
             self.set_notes = self.set_notes_text.get(1.0, 'end')
+
+            # begin getting and validating planted date
+
             self.planted_date = self.date_planted_entry.get()
+
+            # set date to null if nothing was entered
             if self.planted_date == "":
+                print('No planted date entered')
                 self.planted_date = None
+            else:
+
+                # run the function to validate the date if there is data
+                test_planted_date = validate.Validate(self.planted_date)
+                planted_date_validation = test_planted_date.validate_date()
+                if planted_date_validation:
+                    self.planted_date = self.planted_date
+                    print('Plant date validation passed')
+
+                    # raise and print error message if it doesn't pass
+                elif planted_date_validation == False:
+                    error_message = ("Invalid planted date"
+                                     "\nPlant set not edited")
+                    controller.open_popup(controller,
+                                          error_message)
+                    self.planted_date = None
+                    raise ValueError
+
+                    # do nothing if no data was entered
+                else:
+                    print('Planted date blank, no error')
+                    pass
+
+            # end getting and validating planted date
+
+            # begin getting and validating first harvest date
+
             self.first_harvest_date = self.first_harvest_entry.get()
+
+            # set date to null if nothing was entered
             if self.first_harvest_date == "":
+                print('No harvest date entered')
                 self.first_harvest_date = None
+
+            else:
+                # run the function to validate the date if there is data
+                test_first_harvest_date = validate.Validate(self.first_harvest_date)
+                first_harvest_date_validation = test_first_harvest_date.validate_date()
+                if first_harvest_date_validation:
+
+                    # check if there is a valid planted date entered
+                    # raise and print error message if not
+                    if self.planted_date is None:
+                        error_message = ("Harvest date requires"
+                                         "\na valid Planted Date"
+                                         "\nPlant set not edited")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+                    # check if the planted date precedes the harvest date
+                    # raise and print error message if not
+                    elif datetime.strptime(self.planted_date,
+                                           '%m/%d/%y') >= datetime.strptime(self.first_harvest_date,
+                                                                            '%m/%d/%y'):
+                        error_message = ("Harvest date must be at least"
+                                         "\none (1) day after date planted."
+                                         "\nPlant set not edited.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+                    else:
+                        self.first_harvest_date = self.first_harvest_date
+                        print('First Harvest date validation passed')
+
+                # raise and print error message if data validation doesn't pass
+                elif first_harvest_date_validation == False:
+                    error_message = ("Invalid First Harvest date"
+                                     "\nPlant set not edited")
+                    controller.open_popup(controller,
+                                          error_message)
+                    self.first_harvest_date = None
+                    raise ValueError
+
+                # do nothing if no data was entered
+                else:
+                    print('First Harvest date blank, no error')
+                    pass
+
+            # end getting and validating first harvest date
+
+            # begin getting and validating last harvest date
+
             self.last_harvest_date = self.last_harvest_entry.get()
+
+            # set date to null if nothing was entered
             if self.last_harvest_date == "":
+                print('No last harvest date entered')
                 self.last_harvest_date = None
+            else:
+                # run the function to validate the date if there is data
+                test_last_harvest_date = validate.Validate(self.last_harvest_date)
+                last_harvest_date_validation = test_last_harvest_date.validate_date()
+                if last_harvest_date_validation:
+
+                    # check if there is a valid first harvest date entered
+                    # raise and print error message if not
+                    if self.first_harvest_date is None:
+                        error_message = ("Last Harvest date requires"
+                                         "\na valid First Harvest date."
+                                         "\nPlant set not edited.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+                    # check if the first harvest date equals or precedes the last harvest date
+                    # raise and print error message if not
+                    elif datetime.strptime(self.first_harvest_date,
+                                           '%m/%d/%y') > datetime.strptime(self.last_harvest_date,
+                                                                           '%m/%d/%y'):
+                        error_message = ("Last Harvest date must equal"
+                                         "\nor follow First Harvest date."
+                                         "\nPlant set not edited.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+                    else:
+
+                        self.last_harvest_date = self.last_harvest_date
+                        print('last Harvest date validation passed')
+
+                # raise and print error message if data validation doesn't pass
+                elif last_harvest_date_validation == False:
+                    error_message = ("Invalid Last Harvest date"
+                                     "\nPlant set not edited")
+                    controller.open_popup(controller,
+                                          error_message)
+                    self.last_harvest_date = None
+                    raise ValueError
+
+                # do nothing if no data was entered
+                else:
+                    print('Last Harvest date blank, no error')
+                    pass
+            # end getting and validating last harvest date
 
             if self.radio_selection is None:
                 self.outcome = self.saved_plant_set.outcome
-
             elif self.radio_selection == 9:
                 self.outcome = None
             else:
                 self.outcome = self.radio_selection
 
+            print('outcome assigned')
+            print(self.outcome)
+
             self.updated_set = plant_set.PlantSet()
             self.updated_set.add_new_plant_set(self.plant_id, self.set_type_id, self.set_quantity)
+            print(self.updated_set)
+
+            print('checking plot')
 
             # check if plot was changed
             self.plot_change = None
             if int(self.plot_id) == int(self.saved_plot_id):
                 self.plot_change = 'N'
+                print('no plot change')
             else:
                 self.plot_change = 'Y'
+                print('plot change')
+
+
+            print('all values assigned, checking plan')
 
             self.edited_plan = plan.Plan()
             self.confirmed_plan = self.edited_plan.edited_plan_checks(self.updated_set,
@@ -1645,9 +2005,13 @@ class EditSetPage(tk.Frame):
                                       error_message)
 
         except:
-            error_message = "Missing or invalid data, plant set not updated."
-            controller.open_popup(controller,
-                                  error_message)
+            if ValueError:
+                print("Value Error in edited set")
+                pass
+            else:
+                error_message = "Other error, plant set not updated."
+                controller.open_popup(controller,
+                                      error_message)
 
     def save_unchecked_set(self, controller):
 
@@ -1774,7 +2138,6 @@ class SetupPage(tk.Frame):
                  bg='white').grid(row=2,
                                   column=1,
                                   columnspan=4)
-
 
         tk.Button(self,
                   width=15,
@@ -1935,7 +2298,8 @@ class AddZonesPage(tk.Frame):
         self.zone_name_entry = tk.Entry(self,
                                         justify=tk.LEFT,
                                         width=40,
-                                        bg='white')
+                                        bg='white',
+                                        relief='solid')
         self.zone_name_entry.grid(row=7,
                                   column=5,
                                   columnspan=3)
@@ -1952,7 +2316,8 @@ class AddZonesPage(tk.Frame):
         self.zone_rows_entry = tk.Entry(self,
                                         justify=tk.LEFT,
                                         width=5,
-                                        bg='white')
+                                        bg='white',
+                                        relief='solid')
         self.zone_rows_entry.grid(row=10,
                                   column=5)
         tk.Label(self,
@@ -1963,7 +2328,8 @@ class AddZonesPage(tk.Frame):
         self.zone_columns_entry = tk.Entry(self,
                                            justify=tk.LEFT,
                                            width=5,
-                                           bg='white')
+                                           bg='white',
+                                           relief='solid')
         self.zone_columns_entry.grid(row=11,
                                      column=5)
 
@@ -1980,7 +2346,8 @@ class AddZonesPage(tk.Frame):
         self.zone_notes_text = tk.Text(self,
                                        height=3,
                                        width=20,
-                                       bg='white')
+                                       bg='white',
+                                       relief='solid')
         self.zone_notes_text.grid(row=13,
                                   column=3,
                                   columnspan=3)

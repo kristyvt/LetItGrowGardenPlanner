@@ -45,11 +45,11 @@ class Plan:
             sun_id = r[5]
             soil_moisture_id = r[6]
             crop_nitrogen_level = r[7]
-            plant_in_spring = r[9]
-            plant_in_fall = r[10]
-            frost_tolerance_id = r[11]
-            total_times_planted = r[12]
-            times_succeeded = r[13]
+            plant_in_spring = r[8]
+            plant_in_fall = r[9]
+            frost_tolerance_id = r[10]
+            total_times_planted = r[11]
+            times_succeeded = r[12]
 
             self.this_plant = plant.Plant()
             self.this_plant.set_plant_requirements(plant_id,
