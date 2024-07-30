@@ -35,8 +35,8 @@ class Validate:
             print(self.data)
             try:
                 # check if integer and if so, is it more than 0?
-                int(self.data)
-                if self.data > 0:
+                int_data = int(self.data)
+                if int_data > 0:
                     print('valid positive int')
                     return True
                 else:
@@ -45,6 +45,10 @@ class Validate:
 
             except TypeError:
                 print('invalid type')
+                return False
+
+            except ValueError:
+                print('invalid value')
                 return False
 
         # if no data, return null value
@@ -58,8 +62,9 @@ class Validate:
 
             # check if float and if so, is it 0 or more?
             try:
-                float(self.data)
-                if self.data > 0:
+                float_data = float(self.data)
+
+                if float_data > 0:
                     return True
                 else:
                     return False
@@ -80,7 +85,7 @@ class Validate:
                 str(self.data)
 
                 # set list of valid characters
-                valid_chars = re.compile(r"[A-Za-z0-9\- _',:%&]+")
+                valid_chars = re.compile(r"[A-Za-z0-9\- _',:%&()]+")
 
                 # set list of "dangerous" database strings
                 invalid_strings = re.compile(r"[Dd][Rr][Oo][Pp] .+"

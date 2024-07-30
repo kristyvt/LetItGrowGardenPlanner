@@ -54,7 +54,7 @@ class DropDown:
                  query_name,
                  row,
                  column,
-                 columnspan,
+                 column_span,
                  sticky):
         try:
 
@@ -92,7 +92,7 @@ class DropDown:
                                       values=self.drop_down_list)
             self.combo.grid(row=row,
                             column=column,
-                            columnspan=columnspan,
+                            columnspan=column_span,
                             sticky=sticky)
 
             # call function to retrieve value when item is selected
@@ -102,7 +102,9 @@ class DropDown:
         except:
             print("no connection dropdown")
 
-    # function to retrieve value selected from dropdown list
+    # Function to retrieve value selected from dropdown list
+    # "Event" parameter is necessary to bind value to action,
+    #  even though it doesn't appear in the function itself.
     def get_value(self,
                   event):
 
@@ -145,8 +147,9 @@ class Window(tk.Tk):
                        *args,
                        **kwargs)
         self.geometry("1250x500")
+        self.configure(bg='white')
         container = tk.Frame(self)
-        container.configure(background='white')
+        container.configure(bg='white')
 
         # title appearing at the top of all primary windows
         self.title("Let it Grow Garden Planner")
@@ -158,10 +161,7 @@ class Window(tk.Tk):
 
         # set default layout for interface windows
 
-        container.pack(side="top",
-                       fill="both",
-                       expand=True)
-
+        container.pack()
         container.grid_rowconfigure(0,
                                     weight=1)
         container.grid_columnconfigure(0,
@@ -187,10 +187,7 @@ class Window(tk.Tk):
                   EditPlotPage,
                   AddSeasonPage,
                   EditSeasonPage,
-                  PlantingPlanReport,
-                  PlantsDetailReport,
-                  OutcomeDetailReport,
-                  OutcomeSummaryReport,
+
                   CompleteYearPage):
             frame = F(container,
                       self)
@@ -205,7 +202,7 @@ class Window(tk.Tk):
     def show_frame(self, cont):
         frame = self.frames[cont]
         # set background color
-        frame.configure(background='white')
+        frame.configure(bg='white')
         frame.grid(row=0,
                    column=0,
                    sticky="nsew",
@@ -226,7 +223,8 @@ class Window(tk.Tk):
     def open_popup(self, controller, message):
         # set formatting for just this window
         top = tk.Toplevel(self)
-        top.geometry("300x200")
+        top = tk.Toplevel(self)
+        top.geometry("400x200")
         top.configure(bg='white',
                       padx=25,
                       pady=25)
@@ -549,7 +547,7 @@ class AddPlantPage(tk.Frame):
         self.depth_per_plant_entry.grid(row=9,
                                         column=7)
         tk.Label(self,
-                 text="Depth to Plant Seeds, inches, 2 decimals ok:",
+                 text="Depth to Plant Seeds, inches, will round to 2 decimals:",
                  anchor='e',
                  justify=tk.RIGHT,
                  bg='white').grid(row=10,
@@ -626,6 +624,28 @@ class AddPlantPage(tk.Frame):
 
         try:
 
+            # set variables to values input onscreen
+            # after data validation of each
+
+            # get and validate plant name entry
+
+            data_to_validate = validate.Validate(self.plant_name_entry.get())
+            if data_to_validate.validate_text():
+                self.plant_name = self.plant_name_entry.get()
+
+            elif data_to_validate.validate_text() is False:
+                error_message = ("Invalid Plant Name entered"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                error_message = ("No Plant Name entered"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
             # set to None so that either can be blank
             self.plant_in_spring = None
             self.plant_in_fall = None
@@ -642,24 +662,7 @@ class AddPlantPage(tk.Frame):
                                       error_message)
                 raise ValueError
 
-            # set variables to values input onscreen
-            # after data validation of each
-            data_to_validate = validate.Validate(self.plant_name_entry.get())
-            if data_to_validate.validate_text():
-                self.plant_name = self.plant_name_entry.get()
-
-            elif data_to_validate.validate_text() == False:
-                error_message = ("Invalid Plant Name entered"
-                                 "\nNew plant not added.")
-                controller.open_popup(controller,
-                                      error_message)
-                raise ValueError
-            else:
-                error_message = ("No Plant Name entered"
-                                 "\nNew plant not added.")
-                controller.open_popup(controller,
-                                      error_message)
-                raise ValueError
+            # get and validate crop group entry
 
             data_to_validate = validate.Validate(self.crop_group_combo.selection)
             if data_to_validate.validate_text():
@@ -667,7 +670,7 @@ class AddPlantPage(tk.Frame):
                 self.crop_group_id = int(self.crop_group_combo.get_id(crop_group_query,
                                                                       crop_group_text))
 
-            elif data_to_validate.validate_text() == False:
+            elif data_to_validate.validate_text() is False:
                 error_message = ("Invalid or missing Crop Group entry"
                                  "\nNew plant not added.")
                 controller.open_popup(controller,
@@ -679,6 +682,8 @@ class AddPlantPage(tk.Frame):
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
+
+            # get and validate sun requirement entry
 
             data_to_validate = validate.Validate(self.sun_combo.selection)
             if data_to_validate.validate_text():
@@ -686,7 +691,7 @@ class AddPlantPage(tk.Frame):
                 self.sun_id = int(self.sun_combo.get_id(sun_query,
                                                         sun_id_text))
 
-            elif data_to_validate.validate_text() == False:
+            elif data_to_validate.validate_text() is False:
                 error_message = ("Invalid or missing Sun entry"
                                  "\nNew plant not added.")
                 controller.open_popup(controller,
@@ -699,25 +704,7 @@ class AddPlantPage(tk.Frame):
                                       error_message)
                 raise ValueError
 
-            data_to_validate = validate.Validate(self.soil_moisture_combo.selection)
-            if data_to_validate.validate_text():
-                soil_moisture_text = self.soil_moisture_combo.selection
-                self.soil_moisture_id = \
-                    int(self.soil_moisture_combo.get_id(soil_moisture_query,
-                                                        soil_moisture_text))
-
-            elif data_to_validate.validate_text() == False:
-                error_message = ("Invalid or missing Soil Moisture entry"
-                                 "\nNew plant not added.")
-                controller.open_popup(controller,
-                                      error_message)
-                raise ValueError
-            else:
-                error_message = ("Invalid or missing Soil Moisture entry"
-                                 "\nNew plant not added.")
-                controller.open_popup(controller,
-                                      error_message)
-                raise ValueError
+            # get and validate frost tolerance entry
 
             data_to_validate = validate.Validate(self.frost_tolerance_combo.selection)
             if data_to_validate.validate_text():
@@ -726,7 +713,7 @@ class AddPlantPage(tk.Frame):
                     int(self.frost_tolerance_combo.get_id(frost_tolerance_query,
                                                           frost_tolerance_text))
 
-            elif data_to_validate.validate_text() == False:
+            elif data_to_validate.validate_text() is False:
                 error_message = ("Invalid or missing Frost Tolerance entry"
                                  "\nNew plant not added.")
                 controller.open_popup(controller,
@@ -738,6 +725,142 @@ class AddPlantPage(tk.Frame):
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
+
+            # get and validate soil moisture requirement entry
+
+            data_to_validate = validate.Validate(self.soil_moisture_combo.selection)
+            if data_to_validate.validate_text():
+                soil_moisture_text = self.soil_moisture_combo.selection
+                self.soil_moisture_id = \
+                    int(self.soil_moisture_combo.get_id(soil_moisture_query,
+                                                        soil_moisture_text))
+
+            elif data_to_validate.validate_text() is False:
+                error_message = ("Invalid or missing Soil Moisture entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                error_message = ("Invalid or missing Soil Moisture entry"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # get and validate space required for seedling entry
+
+            space_required_seedling = self.space_per_seedling_entry.get()
+
+            if space_required_seedling == "" or space_required_seedling is None:
+                print('No seedling spacing entered')
+                error_message = ("Missing or invalid seedling spacing selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                test_space_required_seedling = validate.Validate(space_required_seedling)
+                if test_space_required_seedling.validate_positive_int():
+                    print('seedling spacing validation passed')
+                    self.space_required_seedling = int(space_required_seedling)
+                else:
+                    error_message = ("Missing or invalid seedling spacing selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # get and validate space required for seeds entry
+
+            space_required_seeds = self.space_per_seedpack_entry.get()
+
+            if space_required_seeds == "" or space_required_seeds is None:
+                print('No seed spacing entered')
+                error_message = ("Missing or invalid seed spacing selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                test_space_required_seeds = validate.Validate(space_required_seeds)
+                if test_space_required_seeds.validate_positive_int():
+                    print('seed spacing validation passed')
+                    self.space_required_seeds = int(space_required_seeds)
+                else:
+                    error_message = ("Missing or invalid seed spacing selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+                # get and validate depth requirement entry
+
+                depth_requirement = self.depth_per_plant_entry.get()
+
+                if depth_requirement == "" or depth_requirement is None:
+                    print('No depth_requirement entered')
+                    error_message = ("Missing or invalid depth requirement."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+                else:
+                    test_depth_requirement = validate.Validate(depth_requirement)
+                    if test_depth_requirement.validate_positive_int():
+                        print('depth_requirement validation passed')
+                        self.depth_requirement = int(depth_requirement)
+                    else:
+                        error_message = ("Missing or invalid depth requirement."
+                                         "\nPlease try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+                # get and validate depth to plant seeds entry
+
+                depth_to_plant_seeds = self.depth_for_seeds_entry.get()
+
+                # do nothing if blank, can be null
+                if depth_to_plant_seeds == "" or depth_to_plant_seeds is None:
+                    print('No depth to plant seeds entered')
+
+                # run validation test
+                else:
+                    test_depth_to_plant_seeds = validate.Validate(depth_to_plant_seeds)
+                    if test_depth_to_plant_seeds.validate_positive_float():
+                        print('depth to plant seeds validation passed')
+                        self.depth_to_plant_seeds = float(depth_to_plant_seeds)
+                        self.depth_to_plant_seeds = round(self.depth_to_plant_seeds, 2)
+                    else:
+                        error_message = ("Invalid Depth to Plant Seeds."
+                                         "\nPlease try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+                # get and validate days to harvest entry
+
+                days_to_harvest = self.days_to_harvest_entry.get()
+
+                # do nothing if blank, can be null
+                if days_to_harvest == "" or days_to_harvest is None:
+                    print('No days to harvest entered')
+
+                # run validation test
+                else:
+                    test_days_to_harvest = validate.Validate(days_to_harvest)
+                    if test_days_to_harvest.validate_positive_int():
+                        print('days to harvest validation passed')
+                        self.days_to_harvest = int(days_to_harvest)
+                    else:
+                        error_message = ("Invalid Days to Harvest."
+                                         "\nPlease try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+            # get and validate watering requirement entry
 
             data_to_validate = validate.Validate(self.watering_requirement_combo.selection)
             if data_to_validate.validate_text():
@@ -746,7 +869,7 @@ class AddPlantPage(tk.Frame):
                     int(self.watering_requirement_combo.get_id(watering_requirement_query,
                                                                watering_requirement_text))
 
-            elif data_to_validate.validate_text() == False:
+            elif data_to_validate.validate_text() is False:
                 error_message = ("Invalid or missing Watering Requirement entry"
                                  "\nNew plant not added.")
                 controller.open_popup(controller,
@@ -758,12 +881,6 @@ class AddPlantPage(tk.Frame):
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
-
-            self.space_required_seeds = int(self.space_per_seedpack_entry.get())
-            self.space_required_seedling = int(self.space_per_seedling_entry.get())
-            self.depth_requirement = int(self.depth_per_plant_entry.get())
-            self.depth_to_plant_seeds = float(self.depth_for_seeds_entry.get())
-            self.days_to_harvest = int(self.days_to_harvest_entry.get())
 
             # create a new plant object to insert into database
             new_plant = plant.Plant()
@@ -799,7 +916,9 @@ class AddPlantPage(tk.Frame):
 
         # exception handling for invalid data entry
         except ValueError:
-            error_message = ("Other Type error"
+            pass
+        except Exception:
+            error_message = ("Other error"
                              "\nNew plant not added.")
             controller.open_popup(controller,
                                   error_message)
@@ -956,7 +1075,7 @@ class GardenPlanPage(tk.Frame):
                                   column=2,
                                   columnspan=4)
 
-        # setup spinbox with highest plot ID number as max value
+        # setup spinbox with the highest plot ID number as max value
         self.plot_stat_list = []
         top_plot_id = 1
         top_zone_id = 1
@@ -968,7 +1087,7 @@ class GardenPlanPage(tk.Frame):
             this_connection = data_connection.Connection()
             cursor = this_connection.connection.cursor()
 
-            cursor.execute(plot_data_query)  # CAN REMOVE SOME OF THESE ASSIGNMENTS IF NOT  USED
+            cursor.execute(plot_data_query)
             records = cursor.fetchall()
             for r in records:
                 plot_id = r[0]
@@ -1117,6 +1236,132 @@ class GardenPlanPage(tk.Frame):
         except:
             print("no connection available for spinbox")
 
+    def validate_plant_selection(self, controller):
+
+        plant = self.plant_combo.selection
+
+        if plant == "" or plant is None:
+            print('No plant entered')
+            error_message = ("Missing or invalid Plant Name selection."
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
+
+        else:
+            test_plant = validate.Validate(self.plant_combo.selection)
+            if test_plant.validate_text():
+                print('Plant selection validation passed')
+                plant = self.plant_combo.selection
+                return plant
+
+            else:
+                error_message = ("Missing or invalid Plant Name selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+    def validate_season_selection(self, controller):
+
+        season = self.season_combo.selection
+
+        if season == "" or season is None:
+            print('No season entered')
+            error_message = ("Missing or invalid season selection."
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
+
+        else:
+            test_season = validate.Validate(self.season_combo.selection)
+            if test_season.validate_text():
+                print('season selection validation passed')
+                season = self.season_combo.selection
+                return season
+
+            else:
+                error_message = ("Missing or invalid season selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+    def validate_set_type_selection(self, controller):
+
+        set_type = self.set_type_combo.selection
+
+        if set_type == "" or set_type is None:
+            print('No set_type entered')
+            error_message = ("Missing or invalid Set Type."
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
+
+        else:
+            test_set_type = validate.Validate(set_type)
+            if test_set_type.validate_text():
+                print('set_type selection validation passed')
+                set_type = set_type
+                return set_type
+
+            else:
+                error_message = ("Missing or invalid Set Type selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+    def validate_plot_selection(self, controller):
+
+        plot = self.plot_spinbox.get()
+
+        if plot == "" or plot is None or plot == '0':
+            print('No plot entered')
+            return None
+
+        else:
+            test_plot = validate.Validate(plot)
+            if test_plot.validate_positive_int():
+                print('plot selection validation passed')
+                plot = plot
+                return plot
+
+            else:
+                error_message = ("Invalid Plot selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+    def validate_set_quantity_selection(self, controller):
+
+        set_quantity = self.quantity_entry.get()
+
+        if set_quantity == "" or set_quantity is None:
+            print('No set_type entered')
+            error_message = ("Missing or invalid Set Quantity."
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
+
+        else:
+            test_plot = validate.Validate(set_quantity)
+            if test_plot.validate_positive_int():
+                print('set_quantity selection validation passed')
+                set_quantity = set_quantity
+                return set_quantity
+
+            else:
+                error_message = ("Missing or invalid Set Quantity."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
     def add(self, controller):
         self.set_quantity = None
         self.plant_id = None
@@ -1126,14 +1371,34 @@ class GardenPlanPage(tk.Frame):
 
         try:
 
-            plant = self.plant_combo.selection
-            set_type = self.set_type_combo.selection
-            self.set_quantity = self.quantity_entry.get()
+            # get and validate plant selection
+            validated_plant = self.validate_plant_selection(controller)
+            if validated_plant:
+                self.plant_id = int(self.plant_combo.get_id(plant_name_query,
+                                                            validated_plant))
+                print('Plant ID selected is: ' + str(self.plant_id))
+            else:
+                print('No Plant ID')
+                raise ValueError
 
-            self.plant_id = self.plant_combo.get_id(plant_name_query,
-                                                    plant)
-            self.set_type_id = self.set_type_combo.get_id(set_type_query,
-                                                          set_type)
+            # get and validate set type selection
+            validated_set_type = self.validate_set_type_selection(controller)
+            if validated_set_type:
+                self.set_type_id = int(self.set_type_combo.get_id(set_type_query,
+                                                                  validated_set_type))
+                print("Set Type ID is " + str(self.set_type_id))
+
+            else:
+                print('No Set Type ID')
+                raise ValueError
+
+            # get and validate set quantity entered
+            validated_quantity = self.validate_set_quantity_selection(controller)
+            if validated_quantity:
+                self.set_quantity = validated_quantity
+                print('set quantity is ' + str(self.set_quantity))
+            else:
+                raise ValueError
 
             self.new_plant_set = plant_set.PlantSet()
             self.new_plant_set.add_new_plant_set(self.plant_id,
@@ -1142,13 +1407,16 @@ class GardenPlanPage(tk.Frame):
 
             self.new_plan.plant_set_list.append(self.new_plant_set)
 
-            success_message = (str(self.set_quantity) + " " + set_type  # CHANGE TO POPUP
-                               + " of " + plant + " added to tentative Garden Plan")
+            success_message = (str(self.set_quantity)
+                               + " " + validated_set_type
+                               + " of " + validated_plant
+                               + "\nadded to tentative Garden Plan.")
 
             controller.open_popup(controller,
                                   success_message)
 
-
+        except ValueError:
+            pass
         # exception handling for invalid data entry
         except TypeError:
             error_message = "Missing or invalid data, plant set not added."
@@ -1208,7 +1476,6 @@ class GardenPlanPage(tk.Frame):
             message = self.new_plan.execute_plan()
             controller.open_popup(controller, message)
 
-
         else:
             error_message = ("No plant selected.\n"
                              "Please select at least one plant to add.")
@@ -1227,25 +1494,126 @@ class GardenPlanPage(tk.Frame):
 
         try:
 
-            self.set_quantity = self.quantity_entry.get()
-            self.set_plot_id = self.plot_spinbox.get()
-            self.row = self.row_spinbox.get()
-            self.column = self.col_spinbox.get()
+            # get and validate plant selection
+            validated_plant = self.validate_plant_selection(controller)
+            if validated_plant:
+                self.plant_id = int(self.plant_combo.get_id(plant_name_query,
+                                                            validated_plant))
+                print('Plant ID selected is: ' + str(self.plant_id))
+            else:
+                print('No Plant ID')
+                raise ValueError
 
-            plant = self.plant_combo.selection
-            self.plant_id = self.plant_combo.get_id(plant_name_query,
-                                                    plant)
+            # get and validate set type selection
+            validated_set_type = self.validate_set_type_selection(controller)
+            if validated_set_type:
+                self.set_type_id = int(self.set_type_combo.get_id(set_type_query,
+                                                                  validated_set_type))
+                print("Set Type ID is " + str(self.set_type_id))
 
-            set_type = self.set_type_combo.selection
-            self.set_type_id = self.set_type_combo.get_id(set_type_query,
-                                                          set_type)
-            set_season = self.season_combo.selection
-            self.my_season_id = self.season_combo.get_id(seasons_query,
-                                                         set_season)
+            else:
+                print('No Set Type ID')
+                raise ValueError
 
-            zone = self.zone_combo.selection
-            self.zone_id = self.zone_combo.get_id(zone_query,
-                                                  zone)
+            # get and validate set quantity entered
+            validated_quantity = self.validate_set_quantity_selection(controller)
+            if validated_quantity:
+                self.set_quantity = validated_quantity
+                print('set quantity is ' + str(self.set_quantity))
+            else:
+                raise ValueError
+
+            # get and validate season selection
+            validated_season = self.validate_season_selection(controller)
+            if validated_season:
+                self.my_season_id = int(self.season_combo.get_id(seasons_query,
+                                                                 validated_season))
+                print("season ID is " + str(self.my_season_id))
+            else:
+                raise ValueError
+
+            # get and validate plot entered
+            validated_plot = self.validate_plot_selection(controller)
+
+            if validated_plot:
+                self.set_plot_id = validated_plot
+                print('plot is ' + str(self.set_plot_id))
+            else:
+
+                zone = self.zone_combo.selection
+
+                if zone == "" or zone is None:
+                    print('No zone or plot entered')
+                    error_message = ("Missing Zone or Plot selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+                else:
+                    test_zone = validate.Validate(self.zone_combo.selection)
+                    if test_zone.validate_text():
+                        print('Zone selection validation passed')
+                        zone = test_zone
+                        self.zone_id = self.zone_combo.get_id(zone_query,
+                                                              zone)
+
+                    else:
+                        error_message = ("Invalid Zone selection."
+                                         "\nPlease try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+                # get and validate row entry
+
+                row = self.row_spinbox.get()
+
+                if row == "" or row is None or row == '0':
+                    print('No Row or Plot entered')
+                    error_message = ("Missing Row or Plot selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+                # run validation test
+                else:
+                    test_row = validate.Validate(row)
+                    if test_row.validate_positive_int():
+                        print('row validation passed')
+                        self.row = row
+                    else:
+                        error_message = ("Invalid Row entry."
+                                         "\nPlease try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+                # get and validate column entry
+
+                column = self.col_spinbox.get()
+
+                if column == "" or column is None or column == '0':
+                    print('No Column or Plot entered')
+                    error_message = ("Missing Column or Plot selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+                # run validation test
+                else:
+                    test_column = validate.Validate(column)
+                    if test_column.validate_positive_int():
+                        print('row validation passed')
+                        self.column = column
+                    else:
+                        error_message = ("Invalid Column entry."
+                                         "\nPlease try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
 
             self.new_plant_set = plant_set.PlantSet()
             self.new_plant_set.add_new_plant_set(self.plant_id,
@@ -1262,7 +1630,8 @@ class GardenPlanPage(tk.Frame):
 
             controller.open_popup(controller, message)
 
-
+        except ValueError:
+            pass
         except TypeError:
             error_message = "Missing or invalid data, plant set not added."
             controller.open_popup(controller,
@@ -1311,21 +1680,18 @@ class EditSetPage(tk.Frame):
                   command=lambda: controller.show_frame(StartPage)).grid(row=2,
                                                                          column=7,
                                                                          sticky='EW')
-
         tk.Label(self,
                  text="Select Plant Name:",
                  bg='white',
                  font=MEDIUM_FONT).grid(row=3,
                                         column=1,
                                         columnspan=1)
-
         self.plant_combo = DropDown(self,
                                     planting_plan_query,
                                     3,
                                     2,
                                     1,
                                     'W')
-
         tk.Label(self,
                  text="Season:",
                  font='bold',
@@ -1334,14 +1700,12 @@ class EditSetPage(tk.Frame):
                  bg='white').grid(row=3,
                                   column=3,
                                   columnspan=1)
-
         self.season_combo = DropDown(self,
                                      seasons_query,
                                      3,
                                      4,
                                      1,
                                      'W')
-
         tk.Button(self,
                   width=10,
                   text="Search",
@@ -1351,7 +1715,6 @@ class EditSetPage(tk.Frame):
                   command=lambda: self.import_plant_set(controller)).grid(row=3,
                                                                           column=5,
                                                                           sticky='E')
-
         tk.Button(self,
                   text="Next in Season",
                   width=15,
@@ -1361,9 +1724,6 @@ class EditSetPage(tk.Frame):
                   command=lambda: self.import_next_plant_set(controller)).grid(row=3,
                                                                                column=6,
                                                                                sticky='E')
-
-        self.search_error = tk.Label(self)  # DELETE THIS ONCE CONFIRMED REMOVED USAGE ELSEWHERE
-
         tk.Label(self,
                  text=" ",
                  justify=tk.RIGHT,
@@ -1371,7 +1731,6 @@ class EditSetPage(tk.Frame):
                  bg='white').grid(row=4,
                                   column=1,
                                   columnspan=1)
-
         tk.Label(self,
                  text="Plant Set ID:",
                  justify=tk.RIGHT,
@@ -1463,7 +1822,6 @@ class EditSetPage(tk.Frame):
                                             background="green",
                                             foreground="white",
                                             bd=2)
-
         self.date_planted_entry.grid(row=7,
                                      column=7)
 
@@ -1558,7 +1916,6 @@ class EditSetPage(tk.Frame):
                  text=" ",
                  bg='white').grid(row=11,
                                   column=1)
-
         tk.Button(self,
                   text="Check and Save Changes",
                   bg='dark green',
@@ -1567,7 +1924,6 @@ class EditSetPage(tk.Frame):
                   command=lambda: self.check_edited_set(controller)).grid(row=13,
                                                                           column=7,
                                                                           sticky='EW')
-
         tk.Button(self,
                   text="Save Without Checking",
                   bg='white',
@@ -1576,7 +1932,6 @@ class EditSetPage(tk.Frame):
                   command=lambda: self.save_unchecked_set(controller)).grid(row=13,
                                                                             column=5,
                                                                             sticky='EW')
-
         # variables to store search criteria that comes from dropdowns
         # plant_set_id is set further up
 
@@ -1603,11 +1958,137 @@ class EditSetPage(tk.Frame):
                 return plant
 
             else:
-                error_message = ("Missing or invalid Plant Name selection"
+                error_message = ("Missing or invalid Plant Name selection."
                                  "\nPlease try again.")
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
+
+    def validate_season_selection(self, controller):
+
+        season = self.season_combo.selection
+
+        if season == "" or season is None:
+            print('No season entered')
+            error_message = ("Missing or invalid season selection."
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
+
+        else:
+            test_season = validate.Validate(self.season_combo.selection)
+            if test_season.validate_text():
+                print('season selection validation passed')
+                season = self.season_combo.selection
+                return season
+
+            else:
+                error_message = ("Missing or invalid season selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+    def validate_set_type_selection(self, controller):
+
+        set_type = self.set_type_combo.selection
+
+        if set_type == "" or set_type is None:
+            print('No set_type entered')
+            error_message = ("Missing or invalid Set Type."
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
+
+        else:
+            test_set_type = validate.Validate(set_type)
+            if test_set_type.validate_text():
+                print('set_type selection validation passed')
+                set_type = set_type
+                return set_type
+
+            else:
+                error_message = ("Missing or invalid Set Type selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+    def validate_plot_selection(self, controller):
+
+        plot = self.plot_entry.get()
+
+        if plot == "" or plot is None:
+            print('No plot entered')
+            error_message = ("Missing or invalid Plot selection."
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
+
+        else:
+            test_plot = validate.Validate(plot)
+            if test_plot.validate_positive_int():
+                print('plot selection validation passed')
+                plot = plot
+                return plot
+
+            else:
+                error_message = ("Missing or invalid Plot selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+    def validate_set_quantity_selection(self, controller):
+
+        set_quantity = self.quantity_entry.get()
+
+        if set_quantity == "" or set_quantity is None:
+            print('No set_type entered')
+            error_message = ("Missing or invalid Set Quantity."
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
+
+        else:
+            test_plot = validate.Validate(set_quantity)
+            if test_plot.validate_positive_int():
+                print('set_quantity selection validation passed')
+                set_quantity = set_quantity
+                return set_quantity
+
+            else:
+                error_message = ("Missing or invalid Set Quantity."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+    def validate_notes_entry(self, controller):
+
+        set_notes = self.set_notes_text.get(1.0, 'end')
+        print(set_notes)
+
+        if set_notes.strip() == "" or set_notes.strip() is None:
+            return None
+
+        test_notes = validate.Validate(set_notes.strip())
+        if test_notes.validate_text():
+            print('notes selection validation passed')
+            set_notes = set_notes
+            return set_notes
+
+        else:
+            error_message = ("Invalid Notes entry."
+                             "\nAllowed special characters are: -_',:%&()"
+                             "\nPlease try again.")
+            controller.open_popup(controller,
+                                  error_message)
+            raise ValueError
 
     def import_plant_set(self, controller):
 
@@ -1625,13 +2106,24 @@ class EditSetPage(tk.Frame):
 
             # end getting and validating plant selection
 
-            season_selection = self.season_combo.selection
+            # begin getting and validating season selection
+
+            validated_season = self.validate_season_selection(controller)
+            if validated_season:
+                season_selection = self.season_combo.selection
+            else:
+                raise ValueError
+
+            # end getting and validating season selection
+
+            # start search at plant set ID 0
             set_to_check = 0
+
+            # search for the first plant ID matching the plant name and season
 
             q_plant_set_id = self.saved_plant_set.import_plant_set(plant_selection,
                                                                    season_selection,
                                                                    set_to_check)
-
             if q_plant_set_id is None and set_to_check == 0:
 
                 error_text = "Plant Not Found"
@@ -1639,7 +2131,7 @@ class EditSetPage(tk.Frame):
 
                 self.set_default_values(controller)
 
-            elif q_plant_set_id is None and set_to_check > 0:
+            elif q_plant_set_id is None and set_to_check > 0:  # CAN THIS BE REMOVED FOR SINGLE SEARCH?
 
                 error_text = "Last in Season"
                 controller.open_popup(controller, error_text)
@@ -1678,7 +2170,17 @@ class EditSetPage(tk.Frame):
                 raise ValueError
 
             # end getting and validating plant selection
-            season_selection = self.season_combo.selection
+
+            # begin getting and validating season selection
+
+            validated_season = self.validate_season_selection(controller)
+            if validated_season:
+                season_selection = self.season_combo.selection
+            else:
+                raise ValueError
+
+            # end getting and validating season selection
+
             set_to_check = self.plant_set_id.get()
 
             q_plant_set_id = self.saved_plant_set.import_plant_set(plant_selection,
@@ -1715,7 +2217,6 @@ class EditSetPage(tk.Frame):
                 error_message = "Other error, plant set not found."
                 controller.open_popup(controller,
                                       error_message)
-
 
     def reset_values(self, controller):
 
@@ -1758,52 +2259,48 @@ class EditSetPage(tk.Frame):
             error_text = "Error resetting values"
             controller.open_popup(controller, error_text)
 
-    def check_edited_set(self, controller):
-
+    def validate_values(self, controller):
         try:
-
-            # begin getting and validating plant selection
-
-            plant = self.validate_plant_selection(controller)
-
-            if plant:
+            # begin get and validate plant selection
+            validated_plant = self.validate_plant_selection(controller)
+            if validated_plant:
                 self.plant_id = int(self.plant_combo.get_id(plant_name_query,
-                                                            plant))
+                                                            validated_plant))
                 print('Plant ID selected is: ' + str(self.plant_id))
             else:
                 print('No Plant ID')
                 raise ValueError
 
-            # end getting and validating plant selection
+            # get and validate season selection
+            validated_season = self.validate_season_selection(controller)
+            if validated_season:
+                self.season_id = int(self.season_combo.get_id(seasons_query,
+                                                              validated_season))
+                print("season ID is " + str(self.season_id))
+            else:
+                raise ValueError
 
-            set_season = self.season_combo.selection
+            # get and validate plot entered
+            validated_plot = self.validate_plot_selection(controller)
+            if validated_plot:
+                self.plot_id = validated_plot
+                print('plot is ' + str(self.plot_id))
+            else:
+                raise ValueError
 
-            self.season_id = self.season_combo.get_id(seasons_query,
-                                                      set_season)
+            # get and validate set quantity entered
+            validated_quantity = self.validate_set_quantity_selection(controller)
+            if validated_quantity:
+                self.set_quantity = validated_quantity
+                print('set quantity is ' + str(self.set_quantity))
+            else:
+                raise ValueError
 
-            print("season ID is " + str(self.season_id))
-
-            if self.season_id is None:
-                this_connection = data_connection.Connection()  # connect to server
-                cursor = this_connection.connection.cursor()  # set connection cursor
-                cursor.execute(seasons_query)
-                records = cursor.fetchall()
-                for r in records:
-                    if self.saved_plant_set.season_text == r[1]:
-                        self.season_id = r[0]
-
-            self.set_quantity = self.quantity_entry.get()
-
-            print('set quantity is ' + str(self.set_quantity))
-
-            self.plot_id = self.plot_entry.get()
-            print('plot is ' + str(self.set_quantity))
-
+            # get and validate set type selected
             set_type = self.set_type_combo.selection
-            print('set type to check is ' + str(set_type))
-            self.set_type_id = self.set_type_combo.get_id(set_type_query,
-                                                          set_type)
-            if self.set_type_id is None:
+
+            # if a new set type isn't selected, look up type of imported set
+            if set_type is None or set_type == '':
                 this_connection = data_connection.Connection()  # connect to server
                 cursor = this_connection.connection.cursor()  # set connection cursor
                 cursor.execute(set_type_query)
@@ -1812,12 +2309,35 @@ class EditSetPage(tk.Frame):
                     if self.saved_plant_set.set_type == r[1]:
                         self.set_type_id = r[0]
 
+            # otherwise validate the selection made
+            else:
+                validated_set_type = self.validate_set_type_selection(controller)
+                if validated_set_type:
+
+                    set_type = validated_set_type
+                    print('set type to check is ' + str(set_type))
+
+                    self.set_type_id = int(self.set_type_combo.get_id(set_type_query,
+                                                                      validated_set_type))
+                    print("Set Type ID is " + str(self.set_type_id))
+
+                else:
+                    raise ValueError
+
+            # throw error if the set type ID was not generated by either of the above
+            if self.set_type_id is None or set_type == '':
+                error_message = ("Missing or invalid Set Type selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
             print("Set Type ID is " + str(self.set_type_id))
 
-            self.set_notes = self.set_notes_text.get(1.0, 'end')
+            # get and validate optional notes entry
+            self.set_notes = self.validate_notes_entry(controller)
+            print("Set Notes: " + str(self.set_notes))
 
             # begin getting and validating planted date
-
             self.planted_date = self.date_planted_entry.get()
 
             # set date to null if nothing was entered
@@ -1834,7 +2354,7 @@ class EditSetPage(tk.Frame):
                     print('Plant date validation passed')
 
                     # raise and print error message if it doesn't pass
-                elif planted_date_validation == False:
+                elif planted_date_validation is False:
                     error_message = ("Invalid planted date"
                                      "\nPlant set not edited")
                     controller.open_popup(controller,
@@ -1864,7 +2384,7 @@ class EditSetPage(tk.Frame):
                 first_harvest_date_validation = test_first_harvest_date.validate_date()
                 if first_harvest_date_validation:
 
-                    # check if there is a valid planted date entered
+                    # check if there is a valid "planted date" entered
                     # raise and print error message if not
                     if self.planted_date is None:
                         error_message = ("Harvest date requires"
@@ -1891,7 +2411,7 @@ class EditSetPage(tk.Frame):
                         print('First Harvest date validation passed')
 
                 # raise and print error message if data validation doesn't pass
-                elif first_harvest_date_validation == False:
+                elif first_harvest_date_validation is False:
                     error_message = ("Invalid First Harvest date"
                                      "\nPlant set not edited")
                     controller.open_popup(controller,
@@ -1948,7 +2468,7 @@ class EditSetPage(tk.Frame):
                         print('last Harvest date validation passed')
 
                 # raise and print error message if data validation doesn't pass
-                elif last_harvest_date_validation == False:
+                elif last_harvest_date_validation is False:
                     error_message = ("Invalid Last Harvest date"
                                      "\nPlant set not edited")
                     controller.open_popup(controller,
@@ -1976,7 +2496,20 @@ class EditSetPage(tk.Frame):
             self.updated_set.add_new_plant_set(self.plant_id, self.set_type_id, self.set_quantity)
             print(self.updated_set)
 
-            print('checking plot')
+        except ValueError:
+            print("Value Error in edited set")
+            pass
+        except Exception:
+            error_message = "Other error, plant set not updated."
+            controller.open_popup(controller,
+                                  error_message)
+
+    def check_edited_set(self, controller):
+
+        try:
+            self.validate_values(controller)
+
+            print('validation complete, checking plot')
 
             # check if plot was changed
             self.plot_change = None
@@ -1987,18 +2520,15 @@ class EditSetPage(tk.Frame):
                 self.plot_change = 'Y'
                 print('plot change')
 
-
-            print('all values assigned, checking plan')
+            print('plot change status captured, checking plan')
 
             self.edited_plan = plan.Plan()
             self.confirmed_plan = self.edited_plan.edited_plan_checks(self.updated_set,
                                                                       self.season_id,
                                                                       self.plot_id,
                                                                       self.plot_change)
-
             if self.confirmed_plan:
                 self.export_edited_set(controller)
-
             else:
                 error_message = "Failed checks, plant set not updated."
                 controller.open_popup(controller,
@@ -2017,67 +2547,18 @@ class EditSetPage(tk.Frame):
 
         try:
 
-            plant = self.plant_combo.selection
-            self.plant_id = self.plant_combo.get_id(plant_name_query,
-                                                    plant)
-
-            set_season = self.season_combo.selection
-            self.season_id = self.season_combo.get_id(seasons_query,
-                                                      set_season)
-
-            if self.season_id is None:
-                this_connection = data_connection.Connection()  # connect to server
-                cursor = this_connection.connection.cursor()  # set connection cursor
-                cursor.execute(seasons_query)
-                records = cursor.fetchall()
-                for r in records:
-                    if self.saved_plant_set.season_text == r[1]:
-                        self.season_id = r[0]
-
-            self.set_quantity = self.quantity_entry.get()
-
-            self.plot_id = self.plot_entry.get()
-
-            set_type = self.set_type_combo.selection
-            self.set_type_id = self.set_type_combo.get_id(set_type_query,
-                                                          set_type)
-            if self.set_type_id is None:
-                this_connection = data_connection.Connection()  # connect to server
-                cursor = this_connection.connection.cursor()  # set connection cursor
-                cursor.execute(set_type_query)
-                records = cursor.fetchall()
-                for r in records:
-                    if self.saved_plant_set.set_type == r[1]:
-                        self.set_type_id = r[0]
-
-            self.set_notes = self.set_notes_text.get(1.0, 'end')
-            self.planted_date = self.date_planted_entry.get()
-            if self.planted_date == "":
-                self.planted_date = None
-            self.first_harvest_date = self.first_harvest_entry.get()
-            if self.first_harvest_date == "":
-                self.first_harvest_date = None
-            self.last_harvest_date = self.last_harvest_entry.get()
-            if self.last_harvest_date == "":
-                self.last_harvest_date = None
-
-            if self.radio_selection is None:
-                self.outcome = self.saved_plant_set.outcome
-
-            elif self.radio_selection == 9:
-                self.outcome = None
-            else:
-                self.outcome = self.radio_selection
-
-            self.updated_set = plant_set.PlantSet()
-            self.updated_set.add_new_plant_set(self.plant_id, self.set_type_id, self.set_quantity)
-
+            self.validate_values(controller)
             self.export_edited_set(controller)
 
+
         except:
-            error_message = "Missing or invalid data, plant set not added."
-            controller.open_popup(controller,
-                                  error_message)
+            if ValueError:
+                print("Value Error in edited set")
+                pass
+            else:
+                error_message = "Other error, plant set not updated."
+                controller.open_popup(controller,
+                                      error_message)
 
     def export_edited_set(self, controller):
 
@@ -2367,10 +2848,97 @@ class AddZonesPage(tk.Frame):
 
         try:
 
-            self.zone_name = self.zone_name_entry.get()
-            self.zone_rows = int(self.zone_rows_entry.get())
-            self.zone_columns = int(self.zone_columns_entry.get())
-            self.zone_notes = self.zone_notes_text.get(1.0, tk.END)
+            zone_name = self.zone_name_entry.get()
+
+            # get and validate plant name entry
+
+            zone_name_to_validate = validate.Validate(zone_name)
+            if zone_name_to_validate.validate_text():
+                self.zone_name = str(zone_name)
+
+            elif zone_name_to_validate.validate_text() is False:
+                error_message = ("Invalid Zone Name entered."
+                                 "\nAllowed special characters are: -_',:%&()"
+                                 "\nNew Zone not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+            else:
+                error_message = ("No Zone Name entered"
+                                 "\nNew Zone not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # get and validate row entry
+
+            zone_rows = self.zone_rows_entry.get()
+
+            if zone_rows == "" or zone_rows is None or zone_rows == '0':
+                print('No Rows entered')
+                error_message = ("Missing Row entry."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # run validation test
+            else:
+                test_rows = validate.Validate(zone_rows)
+                if test_rows.validate_positive_int():
+                    print('row validation passed')
+                    self.zone_rows = int(zone_rows)
+                else:
+                    error_message = ("Invalid Row entry."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # get and validate column entry
+
+            zone_columns = self.zone_columns_entry.get()
+
+            if zone_columns == "" or zone_columns is None or zone_columns == '0':
+                print('No Columns entered')
+                error_message = ("Missing Column entry."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # run validation test
+            else:
+                test_columns = validate.Validate(zone_columns)
+                if test_columns.validate_positive_int():
+                    print('column validation passed')
+                    self.zone_columns = int(zone_columns)
+                else:
+                    error_message = ("Invalid Column entry."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            zone_notes = self.zone_notes_text.get(1.0, 'end')
+
+            if zone_notes.strip() == "" or zone_notes.strip() is None:
+                self.zone_notes = None
+
+            else:
+
+                test_notes = validate.Validate(zone_notes.strip())
+                if test_notes.validate_text():
+                    print('notes selection validation passed')
+                    self.zone_notes = zone_notes
+
+                else:
+                    error_message = ("Invalid Notes entry."
+                                     "\nAllowed special characters are: -_',:%&()"
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
 
             this_connection = data_connection.Connection()  # connect to server
             cursor = this_connection.connection.cursor()  # set connection cursor
@@ -2394,8 +2962,11 @@ class AddZonesPage(tk.Frame):
                                   success_message)
 
         # error handling for missing or invalid data
-        except:
-            error_message = "Missing or invalid data, zone not added."
+        except ValueError:
+            pass
+        except Exception:
+            error_message = ("Error saving zone,"
+                             "\nZone has not been added.")
             controller.open_popup(controller,
                                   error_message)
 
@@ -2601,29 +3172,240 @@ class AddPlotsPage(tk.Frame):
 
         try:
 
-            total_rows = int(self.quantity_rows_entry.get())
-            total_columns = int(self.quantity_columns_entry.get())
-            self.total_plots = total_rows * total_columns
-            self.plot_size = int(self.plot_size_entry.get())
+            # Get and validate zone selection
+
+            zone = self.zone_combo.selection
+
+            if zone == "" or zone is None:
+                print('No zone entered')
+                error_message = ("Missing Zone selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # Run validation test
+
+            else:
+                test_zone = validate.Validate(zone)
+                if test_zone.validate_text():
+                    print('Zone selection validation passed')
+                    self.zone_id = self.zone_combo.get_id(zone_query,
+                                                          zone)
+                    print(self.zone_id)
+
+                else:
+                    error_message = ("Invalid Zone selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            print('zone ID is: ' + str(self.zone_id))
+
+            #  Get and validate row entry
+
+            total_rows = self.quantity_rows_entry.get()
+
+            if (total_rows == ""
+                    or total_rows is None
+                    or total_rows == '0'):
+                print('No Rows entered')
+                error_message = ("Missing Row entry."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # run validation test
+            else:
+                test_rows = validate.Validate(total_rows)
+                if test_rows.validate_positive_int():
+                    print('row validation passed')
+                    self.total_rows = int(total_rows)
+                else:
+                    error_message = ("Invalid Row entry."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # get and validate column entry
+
+            total_columns = self.quantity_columns_entry.get()
+
+            if (total_columns == ""
+                    or total_columns is None
+                    or total_columns == '0'):
+                print('No Columns entered')
+                error_message = ("Missing Column entry."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # run validation test
+            else:
+                test_columns = validate.Validate(total_columns)
+                if test_columns.validate_positive_int():
+                    print('column validation passed')
+                    self.total_columns = int(total_columns)
+                else:
+                    error_message = ("Invalid Column entry."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            self.total_plots = self.total_rows * self.total_columns
+
+            # get and validate plot size
+
+            plot_size = self.plot_size_entry.get()
+
+            if (plot_size == ""
+                    or plot_size is None
+                    or plot_size == '0'):
+                print('No Plot Size entered')
+                error_message = ("Missing Plot Size entry."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # run validation test
+            else:
+                test_plot_size = validate.Validate(plot_size)
+                if test_plot_size.validate_positive_int():
+                    print('plot size validation passed')
+                    self.plot_size = int(plot_size)
+                else:
+                    error_message = ("Invalid Plot Size entry."
+                                     "\nPlease enter inches or feet in"
+                                     "\nwhole numbers and try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # Get and validate Measurement Unit selection
+
             measurement_unit_text = self.measurement_combo.selection
-            self.measurement_unit_id = \
-                int(self.measurement_combo.get_id(measurement_unit_query,
-                                                  measurement_unit_text))
+
+            if measurement_unit_text == "" or measurement_unit_text is None:
+                print('No Measurement Unit selected')
+                error_message = ("Missing Measurement Unit selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # Run validation test
+
+            else:
+                test_measurement_unit_text = validate.Validate(measurement_unit_text)
+                if test_measurement_unit_text.validate_text():
+                    print('Measurement Unit selection validation passed')
+                    self.measurement_unit_id = self.measurement_combo.get_id(measurement_unit_query,
+                                                                             measurement_unit_text)
+                else:
+                    error_message = ("Invalid Measurement Unit selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # does not need validation since it's a checkbox
             self.container = bool(self.is_container.get())
+
+            # get and validate container depth if plot is a container
             if self.container:
-                self.container_depth = int(self.container_depth_entry.get())
-            zone_text = self.zone_combo.selection
-            self.zone_id = int(self.zone_combo.get_id(zone_query,
-                                                      zone_text))
+
+                container_depth = self.container_depth_entry.get()
+
+                if (container_depth == ""
+                        or container_depth is None
+                        or container_depth == '0'):
+                    print('No container_depth entered')
+                    error_message = ("Missing Container Depth entry"
+                                     "\nand Container is selected."
+                                     "\nPlease enter Container Depth.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+                # run validation test
+                else:
+                    test_container_depth = validate.Validate(container_depth)
+                    if test_container_depth.validate_positive_int():
+                        print('container_depth validation passed')
+                        self.container_depth = int(container_depth)
+                    else:
+                        error_message = ("Invalid Container Depth entry."
+                                         "\nPlease enter inches in"
+                                         "\nwhole numbers and try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+            # Get and validate Sun Level selection
+
             sun_text = self.sun_combo.selection
-            self.sun_id = int(self.sun_combo.get_id(sun_query,
-                                                    sun_text))
+
+            if sun_text == "" or sun_text is None:
+                print('No Sun Level selected')
+                error_message = ("Missing Sun Level selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # Run validation test
+            else:
+                test_sun_text = validate.Validate(sun_text)
+                if test_sun_text.validate_text():
+                    print('sun selection validation passed')
+                    self.sun_id = self.measurement_combo.get_id(sun_query,
+                                                                sun_text)
+
+                else:
+                    error_message = ("Invalid Sun Level selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # Get and validate Soil Moisture selection
+
             soil_moisture_text = self.soil_moisture_combo.selection
-            self.soil_moisture_id = int(self.soil_moisture_combo.get_id(soil_moisture_query,
-                                                                        soil_moisture_text))
+
+            if soil_moisture_text == "" or soil_moisture_text is None:
+                print('No soil_moisture_text Level selected')
+                error_message = ("Missing Soil Moisture Level selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # Run validation test
+
+            else:
+                test_soil_moisture_text = validate.Validate(soil_moisture_text)
+                if test_soil_moisture_text.validate_text():
+                    print('soil_moisture selection validation passed')
+                    self.soil_moisture_id = self.measurement_combo.get_id(soil_moisture_query,
+                                                                          soil_moisture_text)
+                else:
+                    error_message = ("Invalid Soil Moisture Level selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
 
             this_connection = data_connection.Connection()  # connect to server
             cursor = this_connection.connection.cursor()  # set connection cursor
+
+            print('Connected')
+            print(self.zone_id)
 
             last_record_id = None
             plot_id = None
@@ -2655,10 +3437,12 @@ class AddPlotsPage(tk.Frame):
             column = 1
             self.new_plot_list = []
 
+            print('empty plot list created')
+
             for id in range(self.total_plots):
                 self.new_plot = plot.Plot()
 
-                if column > total_columns:
+                if column > self.total_columns:
                     row = row + 1
                     column = 1
 
@@ -2700,14 +3484,17 @@ class AddPlotsPage(tk.Frame):
 
             this_connection.end_connection()
 
-            #display confirmation popup
-            success_message = ('Plots added successfully!')
+            #  display confirmation popup
+            success_message = (str(self.total_plots) + ' Plots added successfully!')
             controller.open_popup(controller,
                                   success_message)
 
         # error handling for missing or invalid data
-        except:
-            error_message = "Missing or invalid data, plots not added."
+        except ValueError:
+            pass
+        except Exception:
+            error_message = "Error saving new plots" \
+                            "\nplots not added."
             controller.open_popup(controller,
                                   error_message)
 
@@ -2725,12 +3512,13 @@ class EditPlotPage(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         try:
-
             self.set_default_values(controller)
-            self.set_plot_spinbox(controller)
+            self.set_plot_spinbox()
 
         except:
-            print("no connection available")
+            error_message = "Error connecting to database"
+            controller.open_popup(controller,
+                                  error_message)
 
     def set_default_values(self, controller):
         tk.Label(self,
@@ -2771,7 +3559,6 @@ class EditPlotPage(tk.Frame):
                   command=lambda: self.import_plot(controller)).grid(row=3,
                                                                      column=4,
                                                                      sticky='E')
-
         tk.Label(self,
                  text=" ",
                  bg='white').grid(row=10,
@@ -2910,8 +3697,8 @@ class EditPlotPage(tk.Frame):
         self.plot_active_checkbox.grid(row=12,
                                        column=2)
 
-    def set_plot_spinbox(self, controller):
-        # setup spinbox with highest plot ID number as max value
+    def set_plot_spinbox(self):
+        # setup spinbox with the highest plot ID number as max value
         self.plot_stat_list = []
         top_plot_id = 1
 
@@ -2995,11 +3782,11 @@ class EditPlotPage(tk.Frame):
             print(self.plot_id)
 
         if self.plot_id is not None:
-            self.reset_values(controller)
+            self.reset_values()
         else:
             self.set_default_values(controller)
 
-    def reset_values(self, controller):
+    def reset_values(self):
         self.container_depth_entry.delete(0, 'end')
         self.plot_active = 0
         self.plot_active_checkbox.deselect()
@@ -3036,51 +3823,226 @@ class EditPlotPage(tk.Frame):
         else:
             self.is_container = 0
 
-    def export_edited_plot(self, controller):
+    def validate_edited_plot(self, controller):
 
         try:
+            # get and validate plot size
 
-            self.plot_size = self.plot_size_entry.get()
+            plot_size = self.plot_size_entry.get()
 
-            measurement_unit = self.measurement_combo.combo.get()
-            self.measurement_unit_id = self.measurement_combo.get_id(measurement_unit_query, measurement_unit)
+            if (plot_size == ""
+                    or plot_size is None
+                    or plot_size == '0'):
+                print('No Plot Size entered')
+                error_message = ("Missing Plot Size entry."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # run validation test
+            else:
+                test_plot_size = validate.Validate(plot_size)
+                if test_plot_size.validate_positive_int():
+                    print('plot size validation passed')
+                    self.plot_size = int(plot_size)
+                else:
+                    error_message = ("Invalid Plot Size entry."
+                                     "\nPlease enter inches or feet in"
+                                     "\nwhole numbers and try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # Get and validate Measurement Unit selection
+
+            measurement_unit_text = self.measurement_combo.combo.get()
+
+            if measurement_unit_text == "" or measurement_unit_text is None:
+                print('No Measurement Unit selected')
+                error_message = ("Missing Measurement Unit selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # Run validation test
+
+            else:
+                test_measurement_unit_text = validate.Validate(measurement_unit_text)
+                if test_measurement_unit_text.validate_text():
+                    print('Measurement Unit selection validation passed')
+                    self.measurement_unit_id = self.measurement_combo.get_id(measurement_unit_query,
+                                                                             measurement_unit_text)
+
+                else:
+                    error_message = ("Invalid Measurement Unit selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
 
             if self.is_container == 1:
                 self.container = bool(True)
-                self.container_depth = int(self.container_depth_entry.get())
             else:
                 self.container = bool(False)
                 self.container_depth = None
 
-            self.nitrogen_level = self.nitrogen_level_entry.get()
+            # get and validate container depth if plot is a container
+            if self.container:
 
-            sun = self.sun_combo.combo.get()
-            self.sun_id = self.sun_combo.get_id(sun_query, sun)
+                container_depth = self.container_depth_entry.get()
 
-            soil_moisture = self.soil_moisture_combo.combo.get()
-            self.soil_moisture_id = self.soil_moisture_combo.get_id(soil_moisture_query, soil_moisture)
+                if (container_depth == ""
+                        or container_depth is None
+                        or container_depth == '0'):
+                    print('No container_depth entered')
+                    error_message = ("Missing Container Depth entry"
+                                     "\nand Container is selected."
+                                     "\nPlease enter Container Depth.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+                # run validation test
+                else:
+                    test_container_depth = validate.Validate(container_depth)
+                    if test_container_depth.validate_positive_int():
+                        print('container_depth validation passed')
+                        self.container_depth = int(container_depth)
+                    else:
+                        error_message = ("Invalid Container Depth entry."
+                                         "\nPlease enter inches in"
+                                         "\nwhole numbers and try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+
+            # Get and validate nitrogen level
+
+            nitrogen_level = self.nitrogen_level_entry.get()
+
+            if (nitrogen_level == ""
+                    or nitrogen_level is None
+                    or nitrogen_level == '0'):
+                print('No Nitrogen Level entered')
+                error_message = ("Missing Nitrogen Level entry."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # run validation test
+            else:
+                test_nitrogen_level = validate.Validate(nitrogen_level)
+                if test_nitrogen_level.validate_int():
+                    print('nitrogen_level validation passed')
+                    self.nitrogen_level = int(nitrogen_level)
+                else:
+                    error_message = ("Invalid Nitrogen Level entry."
+                                     "\nWhole numbers only."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # Get and validate Sun Level selection
+
+            sun_text = self.sun_combo.combo.get()
+
+            if sun_text == "" or sun_text is None:
+                print('No Sun Level selected')
+                error_message = ("Missing Sun Level selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # Run validation test
+            else:
+                test_sun_text = validate.Validate(sun_text)
+                if test_sun_text.validate_text():
+                    print('sun selection validation passed')
+                    self.sun_id = self.measurement_combo.get_id(sun_query,
+                                                                sun_text)
+
+                else:
+                    error_message = ("Invalid Sun Level selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # Get and validate Soil Moisture selection
+
+            soil_moisture_text = self.soil_moisture_combo.combo.get()
+
+            if soil_moisture_text == "" or soil_moisture_text is None:
+                print('No soil_moisture_text Level selected')
+                error_message = ("Missing Soil Moisture Level selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # Run validation test
+
+            else:
+                test_soil_moisture_text = validate.Validate(soil_moisture_text)
+                if test_soil_moisture_text.validate_text():
+                    print('soil_moisture selection validation passed')
+                    self.soil_moisture_id = self.measurement_combo.get_id(soil_moisture_query,
+                                                                          soil_moisture_text)
+
+                else:
+                    error_message = ("Invalid Soil Moisture Level selection."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
+
+            # no validation needed due to checkbox
 
             if self.plot_active == 1:
                 self.is_active = bool(True)
             else:
                 self.is_active = bool(False)
 
-            self.edited_plot = plot.Plot()
-            self.edited_plot.export_updated_plot(self.plot_id,
-                                                 self.plot_size,
-                                                 self.measurement_unit_id,
-                                                 self.container,
-                                                 self.container_depth,
-                                                 self.nitrogen_level,
-                                                 self.sun_id,
-                                                 self.soil_moisture_id,
-                                                 self.is_active)
+            return True
 
+        except ValueError:
+            return False
 
-        except:
-            error_message = "Missing or invalid data, season not updated."
+        except Exception:
+            error_message = "Other error, plot not updated."
             controller.open_popup(controller,
                                   error_message)
+            return False
+
+    def export_edited_plot(self, controller):
+
+        if self.validate_edited_plot(controller):
+            try:
+                self.edited_plot = plot.Plot()
+                self.edited_plot.export_updated_plot(self.plot_id,
+                                                     self.plot_size,
+                                                     self.measurement_unit_id,
+                                                     self.container,
+                                                     self.container_depth,
+                                                     self.nitrogen_level,
+                                                     self.sun_id,
+                                                     self.soil_moisture_id,
+                                                     self.is_active)
+
+                #  display confirmation popup
+                success_message = ('Plot ' + str(self.plot_id) + ' updated successfully!')
+                controller.open_popup(controller,
+                                      success_message)
+
+            except Exception:
+                error_message = "Error saving plot."
+                controller.open_popup(controller,
+                                      error_message)
 
     def get_id_value(self,
                      query_name,
@@ -3097,7 +4059,6 @@ class EditPlotPage(tk.Frame):
 
 
 class AddSeasonPage(tk.Frame):
-
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
@@ -3196,12 +4157,52 @@ class AddSeasonPage(tk.Frame):
 
     def add_new_season(self, controller):
         try:
-            self.year = self.year_spinbox.get()
 
             if self.radio_selection == 1:
                 self.season = "Spring"
             if self.radio_selection == 2:
                 self.season = "Fall"
+
+            # error if neither season was checked
+            if not self.radio_selection == 1 and not self.radio_selection == 2:
+                error_message = ("Missing Spring or Fall selection"
+                                 "\nNew plant not added.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # get and validate year entry
+
+            year = self.year_spinbox.get()
+
+            if year == "" or year is None or year == '0':
+                print('No year entered')
+                error_message = ("Missing year selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # run validation test
+            else:
+                test_year = validate.Validate(year)
+                if test_year.validate_positive_int():
+                    if 2000 <= int(year) <= 3000:
+                        print('year validation passed')
+                        self.year = year
+
+                    else:
+                        error_message = ("Invalid Year entry."
+                                         "\nPlease try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+                else:
+                    error_message = ("Invalid Year entry."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
 
             new_season = my_season.MySeason()
             new_season.set_season_values(self.season, self.year)
@@ -3214,7 +4215,9 @@ class AddSeasonPage(tk.Frame):
                                   success_message)
 
             # error handling for missing or invalid data
-        except:
+        except ValueError:
+            pass
+        except Exception:
             error_message = "Missing or invalid data, season not added."
             controller.open_popup(controller,
                                   error_message)
@@ -3673,15 +4676,15 @@ class ReportsMenu(tk.Frame):
                   text="My Planting Plan",
                   bg='dark green',
                   fg='white',
-                  command=lambda: controller.show_frame(PlantingPlanReport)).grid(row=4,
-                                                                                  column=2,
-                                                                                  sticky='W')
+                  command=lambda: PlantingPlanReport(controller)).grid(row=4,
+                                                                       column=2,
+                                                                       sticky='W')
         tk.Button(self,
                   width=30,
                   text="All Plants Detail",
                   bg='dark green',
                   fg='white',
-                  command=lambda: controller.show_frame(PlantsDetailReport)
+                  command=lambda: PlantsDetailReport(controller)
                   ).grid(row=4, column=3, sticky='E')
 
         tk.Button(self,
@@ -3689,59 +4692,65 @@ class ReportsMenu(tk.Frame):
                   text="Outcome Summary",
                   bg='dark green',
                   fg='white',
-                  command=lambda: controller.show_frame(OutcomeSummaryReport)).grid(row=5,
-                                                                                    column=2,
-                                                                                    sticky='E')
+                  command=lambda: OutcomeSummaryReport(controller)).grid(row=5,
+                                                                         column=2,
+                                                                         sticky='E')
         tk.Button(self,
                   width=30,
                   text="Outcome Detail",
                   bg='dark green',
                   fg='white',
-                  command=lambda: controller.show_frame(OutcomeDetailReport)).grid(row=5,
-                                                                                   column=3,
-                                                                                   sticky='E')
+                  command=lambda: OutcomeDetailReport(controller)).grid(row=5,
+                                                                        column=3,
+                                                                        sticky='E')
         for child in self.winfo_children():
             child.grid_configure(padx=10,
                                  pady=10)
 
 
 class PlantingPlanReport(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, controller):
+        tk.Frame.__init__(self)
 
-        self.set_labels(controller)
+        # set formatting for just this window
+        top = tk.Toplevel(self)
+        top.configure(bg='white',
+                      padx=25,
+                      pady=25)
 
-    def set_labels(self, controller):
+        # set title for just this window
+        top.title("Planting Plan report")
 
-        tk.Label(self,
+        # icon in the top left corner
+        icon_file = "Icon.png"
+        img = tk.PhotoImage(file=icon_file)
+        top.iconphoto(False, img)
+
+        self.set_labels(controller, top)
+
+    def set_labels(self, controller, top):
+
+        tk.Label(top,
                  text="Current Garden Plan",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
                                   column=2,
                                   columnspan=4)
-        tk.Label(self,
+        tk.Label(top,
                  text=" ",
                  bg='white').grid(row=2,
                                   column=1)
-        tk.Button(self,
+        tk.Button(top,
                   width=15,
-                  text="Back to Reports",
-                  bg='white',
-                  fg='dark red',
-                  font='Helvetica 10',
-                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=2,
-                                                                           column=6)
-        tk.Button(self,
-                  width=15,
-                  text="Exit to Main",
+                  text="Close Report Window",
                   bg='dark red',
                   fg='white',
                   font='Helvetica 10',
-                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
-                                                                         column=8,
-                                                                         sticky='EW')
-        tk.Label(self,
+                  command=lambda: top.destroy()).grid(row=2,
+                                                      column=8,
+                                                      sticky='EW')
+        tk.Label(top,
                  text='Click "Refresh" to reflect changes: ',
                  anchor='e',
                  justify=tk.RIGHT,
@@ -3749,7 +4758,7 @@ class PlantingPlanReport(tk.Frame):
                  bg='white').grid(row=3,
                                   column=1,
                                   columnspan=2)
-        tk.Button(self,
+        tk.Button(top,
                   width=10,
                   text="Refresh",
                   anchor='center',
@@ -3757,9 +4766,10 @@ class PlantingPlanReport(tk.Frame):
                   bg='white',
                   fg='dark green',
                   font='Helvetica 10',
-                  command=lambda: self.export_planting_plan(controller)).grid(row=3,
-                                                                              column=3)
-        tk.Button(self,
+                  command=lambda: self.refresh_planting_plan(controller,
+                                                             top)).grid(row=3,
+                                                                        column=3)
+        tk.Button(top,
                   width=15,
                   text="Export (save) to CSV",
                   anchor='w',
@@ -3769,69 +4779,74 @@ class PlantingPlanReport(tk.Frame):
                   font='Helvetica 10',
                   command=lambda: self.export_planting_plan(controller)).grid(row=3,
                                                                               column=5)
-        tk.Label(self,
+        tk.Label(top,
+                 text="Hint: Export to view all data if list exceeds screen size.",
+                 bg='white').grid(row=3,
+                                  column=6,
+                                  columnspan=4)
+        tk.Label(top,
                  text=" ",
                  bg='white').grid(row=4,
                                   column=1)
 
-        tk.Label(self,
+        tk.Label(top,
                  text="Plant",
                  bg='white').grid(row=5,
                                   column=1)
 
-        tk.Label(self,
+        tk.Label(top,
                  text="Season",
                  bg='white').grid(row=5,
                                   column=2)
 
-        tk.Label(self,
+        tk.Label(top,
                  text="Zone",
                  bg='white').grid(row=5,
                                   column=3)
 
-        tk.Label(self,
+        tk.Label(top,
                  text="Plot",
                  bg='white').grid(row=5,
                                   column=4)
 
-        tk.Label(self,
+        tk.Label(top,
                  text=" Space / Seed Pack ",
                  bg='white').grid(row=5,
                                   column=5)
 
-        tk.Label(self,
+        tk.Label(top,
                  text=" Space / Seedling ",
                  bg='white').grid(row=5,
                                   column=6)
 
-        tk.Label(self,
+        tk.Label(top,
                  text=" Depth for Seeds ",
                  bg='white').grid(row=5,
                                   column=7)
 
-        tk.Label(self,
+        tk.Label(top,
                  text=" Watering Frequency ",
                  bg='white').grid(row=5,
                                   column=8)
 
-        tk.Label(self,
+        tk.Label(top,
                  text=" Days to Harvest ",
                  bg='white').grid(row=5,
                                   column=9)
 
-        self.query_plan(controller)
+        self.query_plan(controller, top)
 
-    def reset_grid(self):
-        for label in self.winfo_children():
+    def reset_grid(self, top):
+        for label in top.winfo_children():
             if type(label) == tk.Label:
                 label.destroy()
 
-    def refresh_planting_plan(self, controller):
-        self.reset_grid()
-        self.set_labels(controller)
-        self.query_plan(controller)
+    def refresh_planting_plan(self, controller, top):
+        self.reset_grid(top)
+        self.set_labels(controller, top)
+        self.query_plan(controller, top)
 
-    def query_plan(self, controller):
+    def query_plan(self, controller, top):
         try:
             this_connection = data_connection.Connection()
             cursor = this_connection.connection.cursor()
@@ -3839,39 +4854,39 @@ class PlantingPlanReport(tk.Frame):
             cursor.execute(planting_plan_query)
 
             for row_number, row in enumerate(cursor, 6):
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[1]),
                          bg='white').grid(column=1,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[2]),
                          bg='white').grid(column=2,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[3]),
                          bg='white').grid(column=3,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[4]),
                          bg='white').grid(column=4,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[5]) + ' inches',
                          bg='white').grid(column=5,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[6]) + ' inches',
                          bg='white').grid(column=6,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[7]) + ' inches',
                          bg='white').grid(column=7,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[8]),
                          bg='white').grid(column=8,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[9]),
                          bg='white').grid(column=9,
                                           row=row_number)
@@ -3901,7 +4916,7 @@ class PlantingPlanReport(tk.Frame):
             new_export = export_query.ExportQuery()
             download_path = new_export.export_csv(planting_plan_query, self.header)
 
-            success_message = "File Saved: " + download_path
+            success_message = "File Saved: \n" + download_path
             controller.open_popup(controller,
                                   success_message)
 
@@ -3912,42 +4927,48 @@ class PlantingPlanReport(tk.Frame):
 
 
 class PlantsDetailReport(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, controller):
+        tk.Frame.__init__(self)
 
-        self.set_labels(controller)
+        # set formatting for just this window
+        top = tk.Toplevel(self)
+        top.configure(bg='white',
+                      padx=25,
+                      pady=25)
 
-    def set_labels(self, controller):
-        tk.Label(self,
+        # set title for just this window
+        top.title("All Plant Details report")
+
+        # icon in the top left corner
+        icon_file = "Icon.png"
+        img = tk.PhotoImage(file=icon_file)
+        top.iconphoto(False, img)
+
+        self.set_labels(controller, top)
+
+    def set_labels(self, controller, top):
+        tk.Label(top,
                  text="All Available Plants",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
                                   column=2,
                                   columnspan=4)
-        tk.Label(self,
+        tk.Label(top,
                  text=" ",
                  bg='white').grid(row=2,
                                   column=1)
-        tk.Button(self,
+        tk.Button(top,
                   width=15,
-                  text="Back to Reports",
-                  bg='white',
-                  fg='dark red',
-                  font='Helvetica 10',
-                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=2,
-                                                                           column=6)
-        tk.Button(self,
-                  width=15,
-                  text="Exit to Main",
+                  text="Close Report Window",
                   bg='dark red',
                   fg='white',
                   font='Helvetica 10',
-                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
-                                                                         column=8,
-                                                                         sticky='EW')
+                  command=lambda: top.destroy()).grid(row=2,
+                                                      column=8,
+                                                      sticky='EW')
 
-        tk.Label(self,
+        tk.Label(top,
                  text='Click "Refresh" to reflect changes: ',
                  anchor='e',
                  justify=tk.RIGHT,
@@ -3956,7 +4977,7 @@ class PlantsDetailReport(tk.Frame):
                                   column=1,
                                   columnspan=2)
 
-        tk.Button(self,
+        tk.Button(top,
                   width=10,
                   text="Refresh",
                   anchor='center',
@@ -3964,10 +4985,10 @@ class PlantsDetailReport(tk.Frame):
                   bg='white',
                   fg='dark green',
                   font='Helvetica 10',
-                  command=lambda: self.refresh_all_plants(controller)).grid(row=3,
-                                                                            column=3)
+                  command=lambda: self.refresh_all_plants(controller, top)).grid(row=3,
+                                                                                 column=3)
 
-        tk.Button(self,
+        tk.Button(top,
                   width=15,
                   text="Export (save) to CSV",
                   anchor='w',
@@ -3975,77 +4996,82 @@ class PlantsDetailReport(tk.Frame):
                   bg='dark green',
                   fg='white',
                   font='Helvetica 10',
-                  command=lambda: self.refresh_all_plants(controller)).grid(row=3,
-                                                                            column=5)
-        tk.Label(self,
+                  command=lambda: self.export_all_plants(controller)).grid(row=3,
+                                                                           column=5)
+        tk.Label(top,
+                 text="Hint: Export to view all data if list exceeds screen size.",
+                 bg='white').grid(row=3,
+                                  column=6,
+                                  columnspan=4)
+        tk.Label(top,
                  text=" ",
                  bg='white').grid(row=4,
                                   column=1)
-        tk.Label(self,
+        tk.Label(top,
                  text="Plant",
                  bg='white').grid(row=5,
                                   column=1)
-        tk.Label(self,
+        tk.Label(top,
                  text="In Plan?",
                  bg='white').grid(row=5,
                                   column=2)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Crop Group ",
                  bg='white').grid(row=5,
                                   column=3)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Sun Required ",
                  bg='white').grid(row=5,
                                   column=4)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Soil Moisture ",
                  bg='white').grid(row=5,
                                   column=5)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Space / Seed Pack ",
                  bg='white').grid(row=5,
                                   column=6)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Space / Seedling ",
                  bg='white').grid(row=5,
                                   column=7)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Depth Requirement ",
                  bg='white').grid(row=5,
                                   column=8)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Watering Frequency ",
                  bg='white').grid(row=5,
                                   column=9)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Frost Tolerance ",
                  bg='white').grid(row=5,
                                   column=10)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Days to Harvest ",
                  bg='white').grid(row=5,
                                   column=11)
-        tk.Label(self,
+        tk.Label(top,
                  text="Plant in Spring?",
                  bg='white').grid(row=5,
                                   column=12)
-        tk.Label(self,
+        tk.Label(top,
                  text="Plant in Fall?",
                  bg='white').grid(row=5,
                                   column=13)
-        self.query_all_plants(controller)
+        self.query_all_plants(controller, top)
 
-    def reset_grid(self):
-        for label in self.winfo_children():
+    def reset_grid(self, top):
+        for label in top.winfo_children():
             if type(label) == tk.Label:
                 label.destroy()
 
-    def refresh_all_plants(self, controller):
-        self.reset_grid()
-        self.set_labels(controller)
-        self.query_all_plants(controller)
+    def refresh_all_plants(self, controller, top):
+        self.reset_grid(top)
+        self.set_labels(controller, top)
+        self.query_all_plants(controller, top)
 
-    def query_all_plants(self, controller):
+    def query_all_plants(self, controller, top):
 
         try:
             this_connection = data_connection.Connection()
@@ -4054,55 +5080,55 @@ class PlantsDetailReport(tk.Frame):
             cursor.execute(plant_detail_query)
 
             for row_number, row in enumerate(cursor, 6):
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[1]),
                          bg='white').grid(column=1,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[2]),
                          bg='white').grid(column=2,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[3]),
                          bg='white').grid(column=3,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[4]),
                          bg='white').grid(column=4,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[5]),
                          bg='white').grid(column=5,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[6]) + ' inches',
                          bg='white').grid(column=6,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[7]) + ' inches',
                          bg='white').grid(column=7,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[8]) + ' inches',
                          bg='white').grid(column=8,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[9]),
                          bg='white').grid(column=9,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[10]),
                          bg='white').grid(column=10,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[11]) + ' days',
                          bg='white').grid(column=11,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[12]),
                          bg='white').grid(column=12,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[13]),
                          bg='white').grid(column=13,
                                           row=row_number)
@@ -4136,7 +5162,7 @@ class PlantsDetailReport(tk.Frame):
             new_export = export_query.ExportQuery()
             download_path = new_export.export_csv(plant_detail_query, self.header)
 
-            success_message = "File Saved: " + download_path
+            success_message = "File Saved: \n" + download_path
             controller.open_popup(controller,
                                   success_message)
 
@@ -4147,43 +5173,49 @@ class PlantsDetailReport(tk.Frame):
 
 
 class OutcomeDetailReport(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, controller):
+        tk.Frame.__init__(self)
 
-        self.set_labels(controller)
+        # set formatting for just this window
+        top = tk.Toplevel(self)
+        top.configure(bg='white',
+                      padx=25,
+                      pady=25)
 
-    def set_labels(self, controller):
+        # set title for just this window
+        top.title("Outcome Detail report")
 
-        tk.Label(self,
+        # icon in the top left corner
+        icon_file = "Icon.png"
+        img = tk.PhotoImage(file=icon_file)
+        top.iconphoto(False, img)
+
+        self.set_labels(controller, top)
+
+    def set_labels(self, controller, top):
+
+        tk.Label(top,
                  text="Outcome Detail Report",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
                                   column=2,
                                   columnspan=4)
-        tk.Label(self,
+        tk.Label(top,
                  text=" ",
                  bg='white').grid(row=2,
                                   column=1)
-        tk.Button(self,
+        tk.Button(top,
                   width=15,
-                  text="Back to Reports",
-                  bg='white',
-                  fg='dark red',
-                  font='Helvetica 10',
-                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=2,
-                                                                           column=6)
-        tk.Button(self,
-                  width=15,
-                  text="Exit to Main",
+                  text="Close Report Window",
                   bg='dark red',
                   fg='white',
                   font='Helvetica 10',
-                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
-                                                                         column=8,
-                                                                         sticky='EW')
+                  command=lambda: top.destroy()).grid(row=2,
+                                                      column=8,
+                                                      sticky='EW')
 
-        tk.Label(self,
+        tk.Label(top,
                  text='Click "Refresh" to reflect changes: ',
                  anchor='e',
                  justify=tk.RIGHT,
@@ -4192,7 +5224,7 @@ class OutcomeDetailReport(tk.Frame):
                                   column=1,
                                   columnspan=2)
 
-        tk.Button(self,
+        tk.Button(top,
                   width=10,
                   text="Refresh",
                   anchor='center',
@@ -4200,10 +5232,10 @@ class OutcomeDetailReport(tk.Frame):
                   bg='white',
                   fg='dark green',
                   font='Helvetica 10',
-                  command=lambda: self.refresh_outcome_detail(controller)).grid(row=3,
-                                                                                column=3)
+                  command=lambda: self.refresh_outcome_detail(controller, top)).grid(row=3,
+                                                                                     column=3)
 
-        tk.Button(self,
+        tk.Button(top,
                   width=15,
                   text="Export (save) to CSV",
                   anchor='w',
@@ -4213,68 +5245,74 @@ class OutcomeDetailReport(tk.Frame):
                   font='Helvetica 10',
                   command=lambda: self.export_outcome_detail(controller)).grid(row=3,
                                                                                column=5)
-        tk.Label(self,
+
+        tk.Label(top,
+                 text="Hint: Export to view all data if list exceeds screen size.",
+                 bg='white').grid(row=3,
+                                  column=6,
+                                  columnspan=4)
+        tk.Label(top,
                  text=" ",
                  bg='white').grid(row=4,
                                   column=1)
-        tk.Label(self,
+        tk.Label(top,
                  text="Plant Set ID",
                  bg='white').grid(row=5,
                                   column=1)
-        tk.Label(self,
+        tk.Label(top,
                  text="Season",
                  bg='white').grid(row=5,
                                   column=2)
-        tk.Label(self,
+        tk.Label(top,
                  text="Plant",
                  bg='white').grid(row=5,
                                   column=3)
-        tk.Label(self,
+        tk.Label(top,
                  text="Zone",
                  bg='white').grid(row=5,
                                   column=4)
-        tk.Label(self,
+        tk.Label(top,
                  text="Plot",
                  bg='white').grid(row=5,
                                   column=5)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Set Quantity ",
                  bg='white').grid(row=5,
                                   column=6)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Set Type ",
                  bg='white').grid(row=5,
                                   column=7)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Date Planted ",
                  bg='white').grid(row=5,
                                   column=8)
-        tk.Label(self,
+        tk.Label(top,
                  text=" First Harvest ",
                  bg='white').grid(row=5,
                                   column=9)
-        tk.Label(self,
+        tk.Label(top,
                  text=" Last Harvest ",
                  bg='white').grid(row=5,
                                   column=10)
-        tk.Label(self,
+        tk.Label(top,
                  text="Outcome",
                  bg='white').grid(row=5,
                                   column=11)
 
-        self.query_outcome_detail(controller)
+        self.query_outcome_detail(controller, top)
 
-    def reset_grid(self):
-        for label in self.winfo_children():
+    def reset_grid(self, top):
+        for label in top.winfo_children():
             if type(label) == tk.Label:
                 label.destroy()
 
-    def refresh_outcome_detail(self, controller):
-        self.reset_grid()
-        self.set_labels(controller)
-        self.query_outcome_detail(controller)
+    def refresh_outcome_detail(self, controller, top):
+        self.reset_grid(top)
+        self.set_labels(controller, top)
+        self.query_outcome_detail(controller, top)
 
-    def query_outcome_detail(self, controller):
+    def query_outcome_detail(self, controller, top):
 
         try:
             this_connection = data_connection.Connection()
@@ -4283,47 +5321,47 @@ class OutcomeDetailReport(tk.Frame):
             cursor.execute(outcome_detail_query)
 
             for row_number, row in enumerate(cursor, 6):
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[0]),
                          bg='white').grid(column=1,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[1]),
                          bg='white').grid(column=2,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[2]),
                          bg='white').grid(column=3,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[3]),
                          bg='white').grid(column=4,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[4]),
                          bg='white').grid(column=5,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[5]),
                          bg='white').grid(column=6,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[6]),
                          bg='white').grid(column=7,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[7]),
                          bg='white').grid(column=8,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[8]),
                          bg='white').grid(column=9,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[9]),
                          bg='white').grid(column=10,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[10]),
                          bg='white').grid(column=11,
                                           row=row_number)
@@ -4353,7 +5391,7 @@ class OutcomeDetailReport(tk.Frame):
             new_export = export_query.ExportQuery()
             download_path = new_export.export_csv(outcome_detail_query, self.header)
 
-            success_message = "File Saved: " + download_path
+            success_message = "File Saved: \n" + download_path
             controller.open_popup(controller,
                                   success_message)
         except:
@@ -4363,44 +5401,48 @@ class OutcomeDetailReport(tk.Frame):
 
 
 class OutcomeSummaryReport(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+    def __init__(self, controller):
+        tk.Frame.__init__(self)
 
-        self.set_labels(controller)
+        # set formatting for just this window
+        top = tk.Toplevel(self)
+        top.configure(bg='white',
+                      padx=25,
+                      pady=25)
 
-    def set_labels(self, controller):
+        # set title for just this window
+        top.title("Outcome Summary report")
 
-        tk.Label(self,
+        # icon in the top left corner
+        icon_file = "Icon.png"
+        img = tk.PhotoImage(file=icon_file)
+        top.iconphoto(False, img)
+
+        self.set_labels(controller, top)
+
+    def set_labels(self, controller, top):
+
+        tk.Label(top,
                  text="Outcome Summary Report",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
                                   column=2,
                                   columnspan=4)
-        tk.Label(self,
+        tk.Label(top,
                  text=" ",
                  bg='white').grid(row=2,
                                   column=1)
-        tk.Button(self,
+        tk.Button(top,
                   width=15,
-                  text="Exit to Main",
+                  text="Close Report Window",
                   bg='dark red',
                   fg='white',
                   font='Helvetica 10',
-                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
-                                                                         column=8,
-                                                                         sticky='EW')
-
-        tk.Button(self,
-                  width=15,
-                  text="Back to Reports",
-                  bg='white',
-                  fg='dark red',
-                  font='Helvetica 10',
-                  command=lambda: controller.show_frame(ReportsMenu)).grid(row=2,
-                                                                           column=5)
-
-        tk.Label(self,
+                  command=lambda: top.destroy()).grid(row=2,
+                                                      column=8,
+                                                      sticky='EW')
+        tk.Label(top,
                  text='Click "Refresh" to reflect changes: ',
                  anchor='e',
                  justify=tk.RIGHT,
@@ -4409,7 +5451,7 @@ class OutcomeSummaryReport(tk.Frame):
                                   column=1,
                                   columnspan=2)
 
-        tk.Button(self,
+        tk.Button(top,
                   width=10,
                   text="Refresh",
                   anchor='center',
@@ -4417,10 +5459,10 @@ class OutcomeSummaryReport(tk.Frame):
                   bg='white',
                   fg='dark green',
                   font='Helvetica 10',
-                  command=lambda: self.refresh_outcome_summary(controller)).grid(row=3,
-                                                                                 column=3)
+                  command=lambda: self.refresh_outcome_summary(controller, top)).grid(row=3,
+                                                                                      column=3)
 
-        tk.Button(self,
+        tk.Button(top,
                   width=15,
                   text="Export (save) to CSV",
                   anchor='w',
@@ -4429,51 +5471,57 @@ class OutcomeSummaryReport(tk.Frame):
                   fg='white',
                   font='Helvetica 10',
                   command=lambda: self.export_outcome_summary(controller)).grid(row=3,
-                                                                                column=4)
+                                                                                column=5)
 
-        tk.Label(self,
+        tk.Label(top,
+                 text="Hint: Export to view all data if list exceeds screen size.",
+                 bg='white').grid(row=3,
+                                  column=6,
+                                  columnspan=4)
+
+        tk.Label(top,
                  text=" ",
                  bg='white').grid(row=4,
                                   column=1)
 
-        tk.Label(self,
+        tk.Label(top,
                  text="Plant Name",
                  bg='white').grid(row=5,
                                   column=1)
 
-        tk.Label(self,
+        tk.Label(top,
                  text=" Times Planted ",
                  bg='white').grid(row=5,
                                   column=2)
 
-        tk.Label(self,
+        tk.Label(top,
                  text=" Success Ratio ",
                  bg='white').grid(row=5,
                                   column=3)
 
-        tk.Label(self,
+        tk.Label(top,
                  text=" Most Recent Season ",
                  bg='white').grid(row=5,
                                   column=4)
 
-        tk.Label(self,
+        tk.Label(top,
                  text=" Most Recent Outcome ",
                  bg='white').grid(row=5,
                                   column=5)
 
-        self.query_outcome_summary(controller)
+        self.query_outcome_summary(controller, top)
 
-    def reset_grid(self):
-        for label in self.winfo_children():
+    def reset_grid(self, top):
+        for label in top.winfo_children():
             if type(label) == tk.Label:
                 label.destroy()
 
-    def refresh_outcome_summary(self, controller):
-        self.reset_grid()
-        self.set_labels(controller)
-        self.query_outcome_summary(controller)
+    def refresh_outcome_summary(self, controller, top):
+        self.reset_grid(top)
+        self.set_labels(controller, top)
+        self.query_outcome_summary(controller, top)
 
-    def query_outcome_summary(self, controller):
+    def query_outcome_summary(self, controller, top):
 
         try:
             this_connection = data_connection.Connection()
@@ -4482,28 +5530,28 @@ class OutcomeSummaryReport(tk.Frame):
             cursor.execute(outcome_summary_query)
 
             for row_number, row in enumerate(cursor, 6):
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[0]),
                          bg='white').grid(column=1,
                                           row=row_number)
-                tk.Label(self,
-                         text=str(row[1]),
+                tk.Label(top,
+                         text=str(round(row[1])),
                          bg='white').grid(column=2,
                                           row=row_number)
                 if row[2] is None:
                     ratio_text = 'N/A'
                 else:
-                    ratio_text = str(row[2]) + '%'
+                    ratio_text = str(round(row[2], 2)) + '%'
 
-                tk.Label(self,
+                tk.Label(top,
                          text=ratio_text,
                          bg='white').grid(column=3,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[3]),
                          bg='white').grid(column=4,
                                           row=row_number)
-                tk.Label(self,
+                tk.Label(top,
                          text=str(row[4]),
                          bg='white').grid(column=5,
                                           row=row_number)
@@ -4529,7 +5577,7 @@ class OutcomeSummaryReport(tk.Frame):
             new_export = export_query.ExportQuery()
             download_path = new_export.export_csv(outcome_summary_query, self.header)
 
-            success_message = "File Saved: " + download_path
+            success_message = "File Saved: \n" + download_path
             controller.open_popup(controller,
                                   success_message)
 
@@ -4655,8 +5703,41 @@ class CompleteYearPage(tk.Frame):
 
     def import_values(self, controller):
         try:
+
             self.closeout_year = planting_year.PlantingYear()
-            self.closeout_year.my_year = self.year_spinbox.get()
+
+            # get and validate year entry
+
+            year = self.year_spinbox.get()
+
+            if year == "" or year is None or year == '0':
+                print('No year entered')
+                error_message = ("Missing year selection."
+                                 "\nPlease try again.")
+                controller.open_popup(controller,
+                                      error_message)
+                raise ValueError
+
+            # run validation test
+            else:
+                test_year = validate.Validate(year)
+                if test_year.validate_positive_int():
+                    if int(year) >= 2000 and int(year) <= 3000:
+                        print('year validation passed')
+                        self.closeout_year.my_year = year
+
+                    else:
+                        error_message = ("Invalid Year entry."
+                                         "\nPlease try again.")
+                        controller.open_popup(controller,
+                                              error_message)
+                        raise ValueError
+                else:
+                    error_message = ("Invalid Year entry."
+                                     "\nPlease try again.")
+                    controller.open_popup(controller,
+                                          error_message)
+                    raise ValueError
 
             print("closeout year = " + str(self.closeout_year.my_year))
 
@@ -4733,8 +5814,11 @@ class CompleteYearPage(tk.Frame):
                      bg='white').grid(row=row_number + 1,
                                       column=2)
 
-        except:
-            error_message = "Invalid year, please try again."
+        except ValueError:
+            pass
+        except Exception:
+            error_message = ("Year not found in database."
+                             "\nPlease make a new selection.")
             controller.open_popup(controller,
                                   error_message)
 
