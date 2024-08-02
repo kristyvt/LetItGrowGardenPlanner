@@ -98,7 +98,7 @@ class Plant:
                   plant_id,
                   plant_name,
                   space_required_seedling,
-                  space_required_seeds,  # will need to fix this to split out variables onscreen and here
+                  space_required_seeds,
                   depth_requirement,
                   sun_id,
                   soil_moisture_id,
@@ -108,6 +108,8 @@ class Plant:
                   frost_tolerance_id,
                   total_times_planted,
                   times_succeeded):
+
+        print('setting requirements')
 
         self.plant_id = plant_id
         self.plant_name = plant_name

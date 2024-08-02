@@ -19,8 +19,6 @@ class PlantingYear:
 
         self.my_year = None
 
-
-
     def display_plant_set_list(self):
         for plant in self.plant_set_list:
             plant.display_plant_set()
@@ -32,7 +30,6 @@ class PlantingYear:
     def display_master_plant_list(self):
         for plant in self.master_plant_list:
             plant.display_plant()
-
 
     def import_year_data(self, my_year):
         self.my_year = int(my_year)
@@ -46,6 +43,10 @@ class PlantingYear:
 
         cursor.execute(plant_requirements_query)
         records = cursor.fetchall()
+
+        for r in records:
+            print(r[0])
+
         for r in records:
             plant_id = r[0]
             plant_name = r[1]
@@ -55,14 +56,17 @@ class PlantingYear:
             sun_id = r[5]
             soil_moisture_id = r[6]
             crop_nitrogen_level = r[7]
-            plant_in_spring = r[9]
-            plant_in_fall = r[10]
-            frost_tolerance_id = r[11]
-            total_times_planted = r[12]
-            times_succeeded = r[13]
+            plant_in_spring = r[8]
+            plant_in_fall = r[9]
+            frost_tolerance_id = r[10]
+            total_times_planted = r[11]
+            times_succeeded = r[12]
 
-            self.this_plant = plant.Plant()
-            self.this_plant.set_plant_requirements(plant_id,
+            this_plant = plant.Plant()
+
+            print(this_plant)
+
+            this_plant.set_plant_requirements(plant_id,
                                                    plant_name,
                                                    space_required_seedling,
                                                    space_required_seeds,
@@ -76,10 +80,9 @@ class PlantingYear:
                                                    total_times_planted,
                                                    times_succeeded)
 
-            self.master_plant_list.append(self.this_plant)
+            this_plant.display_plant()  # for testing only
 
-
-
+            self.master_plant_list.append(this_plant)
 
     def generate_plot_list(self):
 
@@ -102,8 +105,8 @@ class PlantingYear:
         self.generate_master_plant_list()
 
         for set in plant_set_list:
+            print('about to display set')
             set.display_plant_set()
-
 
             # retrieve values previously pulled from SQL
             self.plant_id = set.plant_id

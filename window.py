@@ -223,7 +223,6 @@ class Window(tk.Tk):
     def open_popup(self, controller, message):
         # set formatting for just this window
         top = tk.Toplevel(self)
-        top = tk.Toplevel(self)
         top.geometry("400x200")
         top.configure(bg='white',
                       padx=25,
@@ -1540,7 +1539,7 @@ class GardenPlanPage(tk.Frame):
                 print('plot is ' + str(self.set_plot_id))
             else:
 
-                zone = self.zone_combo.selection
+                zone = self.zone_combo.combo.get()
 
                 if zone == "" or zone is None:
                     print('No zone or plot entered')
@@ -1551,12 +1550,11 @@ class GardenPlanPage(tk.Frame):
                     raise ValueError
 
                 else:
-                    test_zone = validate.Validate(self.zone_combo.selection)
+                    test_zone = validate.Validate(zone)
                     if test_zone.validate_text():
                         print('Zone selection validation passed')
-                        zone = test_zone
-                        self.zone_id = self.zone_combo.get_id(zone_query,
-                                                              zone)
+                        self.zone_id = int(self.zone_combo.get_id(zone_query,
+                                                              zone))
 
                     else:
                         error_message = ("Invalid Zone selection."
@@ -1616,9 +1614,11 @@ class GardenPlanPage(tk.Frame):
                         raise ValueError
 
             self.new_plant_set = plant_set.PlantSet()
+            print('plant ID is ' + str(self.plant_id))
             self.new_plant_set.add_new_plant_set(self.plant_id,
                                                  self.set_type_id,
                                                  self.set_quantity)
+            print('manual plan interface zone id ' + str(self.zone_id))
 
             this_manual_plan = plan.Plan()
             message = this_manual_plan.manual_plan(self.new_plant_set,
@@ -2283,7 +2283,7 @@ class EditSetPage(tk.Frame):
             # get and validate plot entered
             validated_plot = self.validate_plot_selection(controller)
             if validated_plot:
-                self.plot_id = validated_plot
+                self.plot_id = int(validated_plot)
                 print('plot is ' + str(self.plot_id))
             else:
                 raise ValueError
@@ -2291,7 +2291,7 @@ class EditSetPage(tk.Frame):
             # get and validate set quantity entered
             validated_quantity = self.validate_set_quantity_selection(controller)
             if validated_quantity:
-                self.set_quantity = validated_quantity
+                self.set_quantity = int(validated_quantity)
                 print('set quantity is ' + str(self.set_quantity))
             else:
                 raise ValueError
@@ -2313,8 +2313,6 @@ class EditSetPage(tk.Frame):
             else:
                 validated_set_type = self.validate_set_type_selection(controller)
                 if validated_set_type:
-
-                    set_type = validated_set_type
                     print('set type to check is ' + str(set_type))
 
                     self.set_type_id = int(self.set_type_combo.get_id(set_type_query,
@@ -2496,52 +2494,51 @@ class EditSetPage(tk.Frame):
             self.updated_set.add_new_plant_set(self.plant_id, self.set_type_id, self.set_quantity)
             print(self.updated_set)
 
+
+            return True
+
         except ValueError:
-            print("Value Error in edited set")
-            pass
+            print("Value Error in edited set1")
+            return False
         except Exception:
             error_message = "Other error, plant set not updated."
             controller.open_popup(controller,
                                   error_message)
+            return False
 
     def check_edited_set(self, controller):
 
-        try:
-            self.validate_values(controller)
+        if self.validate_values(controller):
+            try:
+                print('validation complete, checking plot')
 
-            print('validation complete, checking plot')
+                # check if plot was changed
+                self.plot_change = None
+                if int(self.plot_id) == int(self.saved_plot_id):
+                    self.plot_change = 'N'
+                    print('no plot change')
+                else:
+                    self.plot_change = 'Y'
+                    print('plot change')
 
-            # check if plot was changed
-            self.plot_change = None
-            if int(self.plot_id) == int(self.saved_plot_id):
-                self.plot_change = 'N'
-                print('no plot change')
-            else:
-                self.plot_change = 'Y'
-                print('plot change')
+                print('plot change status captured, checking plan')
 
-            print('plot change status captured, checking plan')
+                self.edited_plan = plan.Plan()
+                self.confirmed_plan = self.edited_plan.edited_plan_checks(self.updated_set,
+                                                                          self.season_id,
+                                                                          self.plot_id,
+                                                                          self.plot_change)
+                if self.confirmed_plan:
+                    self.export_edited_set(controller)
+                else:
+                    error_message = "Failed checks, plant set not updated."
+                    controller.open_popup(controller,
+                                          error_message)
 
-            self.edited_plan = plan.Plan()
-            self.confirmed_plan = self.edited_plan.edited_plan_checks(self.updated_set,
-                                                                      self.season_id,
-                                                                      self.plot_id,
-                                                                      self.plot_change)
-            if self.confirmed_plan:
-                self.export_edited_set(controller)
-            else:
-                error_message = "Failed checks, plant set not updated."
+            except Exception:
+                error_message = "Error saving Plant Set."
                 controller.open_popup(controller,
-                                      error_message)
-
-        except:
-            if ValueError:
-                print("Value Error in edited set")
-                pass
-            else:
-                error_message = "Other error, plant set not updated."
-                controller.open_popup(controller,
-                                      error_message)
+                                         error_message)
 
     def save_unchecked_set(self, controller):
 
@@ -4777,7 +4774,7 @@ class PlantingPlanReport(tk.Frame):
                   bg='dark green',
                   fg='white',
                   font='Helvetica 10',
-                  command=lambda: self.export_planting_plan(controller)).grid(row=3,
+                  command=lambda: self.export_planting_plan(controller, top)).grid(row=3,
                                                                               column=5)
         tk.Label(top,
                  text="Hint: Export to view all data if list exceeds screen size.",
@@ -4898,7 +4895,7 @@ class PlantingPlanReport(tk.Frame):
             controller.open_popup(controller,
                                   error_message)
 
-    def export_planting_plan(self, controller):
+    def export_planting_plan(self, controller, top):
 
         try:
 
@@ -4948,7 +4945,7 @@ class PlantsDetailReport(tk.Frame):
 
     def set_labels(self, controller, top):
         tk.Label(top,
-                 text="All Available Plants",
+                 text="All Available Plants Detail",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -5724,7 +5721,7 @@ class CompleteYearPage(tk.Frame):
                 if test_year.validate_positive_int():
                     if int(year) >= 2000 and int(year) <= 3000:
                         print('year validation passed')
-                        self.closeout_year.my_year = year
+                        self.closeout_year.my_year = int(year)
 
                     else:
                         error_message = ("Invalid Year entry."
