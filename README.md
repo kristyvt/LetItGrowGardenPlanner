@@ -12,3 +12,14 @@ This project is currently under development as part of my Software Develepment d
 All current Python program files are located in the LetItGrowCodeFiles folder.
 
 Before running the Python program for the first time, please create the database by running the CreateNewGardenDatabase.sql script in SQL Express.
+
+There is a Windows exe file already created. 
+
+To recreate Windows exe:
+  Open command prompt and type: cd [installation location]
+
+  Install pip if needed by typing: py -m pip install
+  Install pyinstaller: pip install pyinstaller
+
+  Then copy in this command to create the exe:
+  pyinstaller --onefile --noconsole --hidden-import babel.numbers --add-data "Images\*.png;.\Images" main.py
