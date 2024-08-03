@@ -8,3 +8,7 @@ The Let it Grow Garden Planner is a digital space where data-driven gardeners ca
 It is a desktop application that runs on Windows using the Python coding language and a SQL back-end database.
 
 This project is currently under development as part of my Software Develepment degree capstone course at Champlain College Online.
+
+All current Python program files are located in the LetItGrowCodeFiles folder.
+
+Before running the Python program for the first time, please create the database by running the CreateNewGardenDatabase.sql script in SQL Express.
