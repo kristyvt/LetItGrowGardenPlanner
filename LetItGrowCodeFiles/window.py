@@ -11,6 +11,7 @@ Last Revised 8/3/24
 
 # built in libraries
 import os  # to locate file path for images
+import sys  # for system exit
 import tkinter as tk  # interface and formatting libraries
 from tkinter import ttk
 from tkcalendar import DateEntry
@@ -249,7 +250,7 @@ class Window(tk.Tk):
 
     # function to close the window which exits the program
     def close_window(self):
-        exit()
+        sys.exit(0)
 
     # function to close only a popup window while leaving primary window open
     def close_popup(self, top):

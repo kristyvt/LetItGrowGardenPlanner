@@ -9,8 +9,15 @@ and all associated classes.
 Last Revised 8/3/24
 '''
 
-import window
+import sys
 
-run = window.Window()
 
-exit(0)
+class Main:
+    def __init__(self):
+        import window
+        run = window.Window()
+
+        sys.exit(0)
+
+
+Main()
