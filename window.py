@@ -1,5 +1,17 @@
+'''
+Let it Grow Garden Planner
+Garden planning and outcome tracking tool
+Kristy Stark
+Champlain College SDEV-435-81
+
+Window runs the interface and calls
+associated classes to run program.
+Last Revised 8/3/24
+'''
+
 # built in libraries
 import os  # to locate file path for images
+import sys  # for system exit
 import tkinter as tk  # interface and formatting libraries
 from tkinter import ttk
 from tkcalendar import DateEntry
@@ -18,8 +30,9 @@ import plant_set
 import planting_year
 import plot
 
+# Font Styles
 LARGE_FONT = ("Helvetica", 16, 'bold')
-MEDIUM_FONT = ("Helvetica", 14)
+MEDIUM_FONT = ("Helvetica", 12)
 
 # SQL queries used to populate dropdown lists
 plant_name_query = 'RetrievePlantNames'
@@ -46,8 +59,7 @@ display_grid_query = 'QueryPlotGrid'
 year_data_query = 'QueryYearData'
 
 
-# class to manage all dropdown lists
-
+# Class to manage all dropdown lists
 class DropDown:
     def __init__(self,
                  parent,
@@ -57,7 +69,6 @@ class DropDown:
                  column_span,
                  sticky):
         try:
-
             # establish connection to database
 
             self.this_connection = data_connection.Connection()
@@ -156,8 +167,15 @@ class Window(tk.Tk):
 
         # icon in the top left corner
         icon_file = "Icon.png"
-        img = tk.PhotoImage(file=icon_file)
+        icon_folder = "Images"
+        # set file path for logo file location
+        path = os.path.abspath(__file__)
+        icon_dir = os.path.dirname(path)
+        icon_path = os.path.join(icon_dir, icon_folder, icon_file)
+
+        img = tk.PhotoImage(file=icon_path)
         self.iconphoto(False, img)
+
 
         # set default layout for interface windows
 
@@ -167,35 +185,55 @@ class Window(tk.Tk):
         container.grid_columnconfigure(0,
                                        weight=1)
 
-        # create a dictionary of frames
-        # each frame is a primary window
+        test_connection = data_connection.Connection()
+        if test_connection.status == "success":
 
-        self.frames = {}
+            # create a dictionary of frames
+            # each frame is a primary window
 
-        # generate the dictionary of frames
-        # each frame is a class
+            self.frames = {}
 
-        for F in (StartPage,
-                  AddPlantPage,
-                  ReportsMenu,
-                  EditSetPage,
-                  DisplayPlan,
-                  GardenPlanPage,
-                  SetupPage,
-                  AddZonesPage,
-                  AddPlotsPage,
-                  EditPlotPage,
-                  AddSeasonPage,
-                  EditSeasonPage,
+            # generate the dictionary of frames
+            # each frame is a class
 
-                  CompleteYearPage):
-            frame = F(container,
-                      self)
+            for F in (StartPage,
+                      AddPlantPage,
+                      ReportsMenu,
+                      EditSetPage,
+                      DisplayPlan,
+                      GardenPlanPage,
+                      SetupPage,
+                      AddZonesPage,
+                      AddPlotsPage,
+                      EditPlotPage,
+                      AddSeasonPage,
+                      CompleteYearPage):
+                frame = F(container,
+                          self)
 
-            self.frames[F] = frame
+                self.frames[F] = frame
 
-        # set initial window as the start page
-        self.show_frame(StartPage)
+            # set initial window as the start page
+            self.show_frame(StartPage)
+        else:
+            # create a dictionary of frames
+            # each frame is a primary window
+
+            self.frames = {}
+
+            # generate the dictionary of frames
+            # each frame is a class
+
+            for F in (StartPage,):
+                frame = F(container,
+                          self)
+
+                self.frames[F] = frame
+
+            # set initial window as the start page
+            self.show_frame(StartPage)
+            self.open_popup(self, "Database does not exist."
+                                  "\nPlease install Garden database and try again")
 
     # function to display a selected frame
     # generally used with buttons
@@ -212,7 +250,7 @@ class Window(tk.Tk):
 
     # function to close the window which exits the program
     def close_window(self):
-        exit()
+        sys.exit(0)
 
     # function to close only a popup window while leaving primary window open
     def close_popup(self, top):
@@ -231,9 +269,16 @@ class Window(tk.Tk):
         # set title for just this window
         top.title("Notification")
 
+
         # icon in the top left corner
         icon_file = "Icon.png"
-        img = tk.PhotoImage(file=icon_file)
+        icon_folder = "Images"
+        # set file path for logo file location
+        path = os.path.abspath(__file__)
+        icon_dir = os.path.dirname(path)
+        icon_path = os.path.join(icon_dir, icon_folder, icon_file)
+
+        img = tk.PhotoImage(file=icon_path)
         top.iconphoto(False, img)
 
         tk.Label(top,
@@ -276,11 +321,12 @@ class StartPage(tk.Frame):
 
         # start page logo file name
         logo_file = "WelcomeLogo.png"
+        logo_folder = "Images"
 
         # set file path for logo file location
         path = os.path.abspath(__file__)
         logo_dir = os.path.dirname(path)
-        logo_path = os.path.join(logo_dir, logo_file)
+        logo_path = os.path.join(logo_dir,logo_folder, logo_file)
 
         # display logo
         logo = tk.PhotoImage(file=logo_path)
@@ -311,24 +357,25 @@ class StartPage(tk.Frame):
                   command=lambda: controller.show_frame(SetupPage)).grid(row=3,
                                                                          column=1,
                                                                          sticky='E')
+
         tk.Button(self,
                   width=25,
-                  text="Add Plant",
-                  bg='dark green',
-                  fg='white',
-                  font='Helvetica 12',
-                  command=lambda: controller.show_frame(AddPlantPage)).grid(row=3,
-                                                                            column=2,
-                                                                            sticky='W')
-        tk.Button(self,
-                  width=25,
-                  text="Start Garden Plan",
+                  text="Create Garden Plan",
                   bg='dark green',
                   fg='white',
                   font='Helvetica 12',
                   command=lambda: controller.show_frame(GardenPlanPage)).grid(row=3,
-                                                                              column=3,
+                                                                              column=2,
                                                                               sticky='E')
+        tk.Button(self,
+                  width=20,
+                  text="Complete Year",
+                  bg='dark green',
+                  fg='white',
+                  font='Helvetica 12',
+                  command=lambda: controller.show_frame(CompleteYearPage)).grid(row=3,
+                                                                                column=3,
+                                                                                sticky='EW')
         tk.Button(self,
                   width=25,
                   text="View Garden Plan",
@@ -356,6 +403,30 @@ class StartPage(tk.Frame):
                   command=lambda: controller.close_window()).grid(row=4,
                                                                   column=3,
                                                                   sticky='E')
+        tk.Label(self,
+                 text='Brand new? Click "Garden Setup & Maintenance" to create your Garden.',
+                 font=MEDIUM_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=6,
+                                  column=1,
+                                  columnspan=3)
+        tk.Label(self,
+                 text='Then click "Create Garden Plan" to select which Plants to grow!',
+                 font=MEDIUM_FONT,
+                 fg='dark green',
+                 bg='white').grid(row=7,
+                                  column=1,
+                                  columnspan=3)
+
+        tk.Label(self,
+                 text='Is the year over? Update the plot statuses by clicking "Complete Year."',
+                 justify=tk.LEFT,
+                 anchor='w',
+                 bg='white',
+                 fg='dark green',
+                 font=MEDIUM_FONT).grid(row=8,
+                                        column=1,
+                                        columnspan=3)
 
         for child in self.winfo_children():
             child.grid_configure(padx=10,
@@ -370,7 +441,7 @@ class AddPlantPage(tk.Frame):
         tk.Frame.__init__(self, parent)  # launch window
 
         tk.Label(self,
-                 text="Add Plant",
+                 text="Add New Plant",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -546,7 +617,7 @@ class AddPlantPage(tk.Frame):
         self.depth_per_plant_entry.grid(row=9,
                                         column=7)
         tk.Label(self,
-                 text="Depth to Plant Seeds, inches, will round to 2 decimals:",
+                 text="Depth to Plant Seeds, in inches, will round to 2 decimal places (optional):",
                  anchor='e',
                  justify=tk.RIGHT,
                  bg='white').grid(row=10,
@@ -570,7 +641,7 @@ class AddPlantPage(tk.Frame):
                                   column=1,
                                   columnspan=2)
         tk.Label(self,
-                 text="Days to Harvest:",
+                 text="Days to Harvest (optional):",
                  anchor='e',
                  justify=tk.RIGHT,
                  bg='white').grid(row=12,
@@ -930,6 +1001,11 @@ class GardenPlanPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,
                           parent)
+
+        self.set_default_values(controller)
+
+    def set_default_values(self, controller):
+
         tk.Label(self,
                  text="Create Garden Plan",
                  font=LARGE_FONT,
@@ -977,7 +1053,7 @@ class GardenPlanPage(tk.Frame):
                                     2,
                                     'W')
         tk.Label(self,
-                 text="Click Refresh if new plants have been added",
+                 text="Click Refresh to reflect recent changes",
                  bg='white',
                  justify=tk.RIGHT,
                  anchor='e').grid(row=5,
@@ -990,7 +1066,7 @@ class GardenPlanPage(tk.Frame):
                   fg='dark green',
                   font='Helvetica 10',
                   width=5,
-                  command=self.reset_plant_dropdown).grid(row=5,
+                  command=lambda: self.set_default_values(controller)).grid(row=5,
                                                           column=7,
                                                           sticky='EW')
         tk.Label(self,
@@ -1476,8 +1552,8 @@ class GardenPlanPage(tk.Frame):
             controller.open_popup(controller, message)
 
         else:
-            error_message = ("No plant selected.\n"
-                             "Please select at least one plant to add.")
+            error_message = ("No plants listed in tentative Garden Plan.\n"
+                             "Please add at least one Plant to Auto-Plan.")
             controller.open_popup(controller, error_message)
 
     def add_manual_set(self, controller):
@@ -1661,7 +1737,7 @@ class EditSetPage(tk.Frame):
     def set_default_values(self, controller):
 
         tk.Label(self,
-                 text="Edit Plant Set",
+                 text="Update Plant Set",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -2248,12 +2324,22 @@ class EditSetPage(tk.Frame):
             if self.saved_plant_set.last_harvest_date is not None:
                 self.last_harvest_entry.set_date(self.saved_plant_set.last_harvest_date)
 
-            if self.saved_plant_set.outcome == 1:
+            print('saved outcome is: ')
+            print(self.saved_plant_set.outcome)
+
+            if self.saved_plant_set.outcome is None:
+                self.radio_selection = 9
+                self.radio1.select()
+            elif self.saved_plant_set.outcome == 1:
+                self.radio_selection = 1
                 self.radio2.select()
             elif self.saved_plant_set.outcome == 0:
+                self.radio_selection = 0
                 self.radio3.select()
-            else:
-                self.radio1.select()
+
+            print('radio selection is')
+            print(self.radio_selection)
+
 
         except TypeError:
             error_text = "Error resetting values"
@@ -2480,9 +2566,12 @@ class EditSetPage(tk.Frame):
                     pass
             # end getting and validating last harvest date
 
-            if self.radio_selection is None:
-                self.outcome = self.saved_plant_set.outcome
-            elif self.radio_selection == 9:
+
+            print('radio is: ')
+            print(self.radio_selection)
+
+
+            if self.radio_selection == 9:
                 self.outcome = None
             else:
                 self.outcome = self.radio_selection
@@ -2590,9 +2679,10 @@ class SetupPage(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         logo_file = "Logo.png"
+        logo_folder = "Images"
         path = os.path.abspath(__file__)
         logo_dir = os.path.dirname(path)
-        logo_path = os.path.join(logo_dir, logo_file)
+        logo_path = os.path.join(logo_dir, logo_folder, logo_file)
 
         logo = tk.PhotoImage(file=logo_path)
         label = tk.Label(image=logo)
@@ -2604,19 +2694,17 @@ class SetupPage(tk.Frame):
                                                    column=4,
                                                    columnspan=3)
         tk.Label(self,
-                 text="Setup and Maintenance",
+                 text="Garden Setup and Maintenance Menu",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
-                                  column=2,
+                                  column=1,
                                   columnspan=4)
-
         tk.Label(self,
                  text=" ",
                  bg='white').grid(row=2,
                                   column=1,
                                   columnspan=4)
-
         tk.Button(self,
                   width=15,
                   text="Exit to Main",
@@ -2665,7 +2753,7 @@ class SetupPage(tk.Frame):
 
         tk.Button(self,
                   width=20,
-                  text="Edit Existing Plot",
+                  text="Edit Individual Plot",
                   bg='dark green',
                   fg='white',
                   font='Helvetica 10',
@@ -2674,32 +2762,22 @@ class SetupPage(tk.Frame):
                                                                             sticky='EW')
         tk.Button(self,
                   width=20,
-                  text="Edit Plant Set",
+                  text="Update Plant Set",
                   bg='dark green',
                   fg='white',
                   font='Helvetica 10',
                   command=lambda: controller.show_frame(EditSetPage)).grid(row=5,
                                                                            column=2,
                                                                            sticky='EW')
-
-        tk.Label(self,
-                 text="Is the year over? Update the plot statuses by clicking Complete Year below.",
-                 justify=tk.LEFT,
-                 anchor='w',
-                 bg='white',
-                 fg='dark green',
-                 font=MEDIUM_FONT).grid(row=6,
-                                        column=1,
-                                        columnspan=3)
         tk.Button(self,
                   width=20,
-                  text="Complete Year",
+                  text="Add New Plant",
                   bg='dark green',
                   fg='white',
                   font='Helvetica 10',
-                  command=lambda: controller.show_frame(CompleteYearPage)).grid(row=7,
-                                                                                column=1,
-                                                                                sticky='EW')
+                  command=lambda: controller.show_frame(AddPlantPage)).grid(row=5,
+                                                                            column=3,
+                                                                            sticky='EW')
 
         for child in self.winfo_children():
             child.grid_configure(padx=10,
@@ -2713,7 +2791,7 @@ class AddZonesPage(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         tk.Label(self,
-                 text="New / Edit Zone",
+                 text="Add New Zone",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -3319,9 +3397,11 @@ class AddPlotsPage(tk.Frame):
 
                 container_depth = self.container_depth_entry.get()
 
+                print('container depth')
+                print(container_depth)
+
                 if (container_depth == ""
-                        or container_depth is None
-                        or container_depth == '0'):
+                        or container_depth is None):
                     print('No container_depth entered')
                     error_message = ("Missing Container Depth entry"
                                      "\nand Container is selected."
@@ -3333,9 +3413,10 @@ class AddPlotsPage(tk.Frame):
                 # run validation test
                 else:
                     test_container_depth = validate.Validate(container_depth)
-                    if test_container_depth.validate_positive_int():
+                    if test_container_depth.validate_positive_float():
                         print('container_depth validation passed')
-                        self.container_depth = int(container_depth)
+                        self.container_depth = float(container_depth)
+                        self.container_depth  = round(self.container_depth, 2)
                     else:
                         error_message = ("Invalid Container Depth entry."
                                          "\nPlease enter inches in"
@@ -3517,6 +3598,9 @@ class EditPlotPage(tk.Frame):
             controller.open_popup(controller,
                                   error_message)
 
+
+    # sets default label and data values for new window
+
     def set_default_values(self, controller):
         tk.Label(self,
                  text="Edit Individual Plot",
@@ -3546,7 +3630,6 @@ class EditPlotPage(tk.Frame):
                   command=lambda: controller.show_frame(StartPage)).grid(row=2,
                                                                          column=8,
                                                                          sticky='EW')
-
         tk.Button(self,
                   width=10,
                   text="Search",
@@ -3764,38 +3847,42 @@ class EditPlotPage(tk.Frame):
                                column=3)
 
     def import_plot(self, controller):
+
+        # create object to store imported plot data
         self.saved_plot = plot.Plot()
+
+        # get plot ID to search from entry screen
         plot_id = self.plot_spinbox.get()
 
-        print(plot_id)
+        # attempt to import the entered plot
         self.plot_id = self.saved_plot.import_plot(plot_id)
 
+        # error if plot is not found
         if self.plot_id is None:
-
             error_text = "Plot Not Found"
             controller.open_popup(controller, error_text)
         else:
-
             print(self.plot_id)
 
+        # if the plot is found in the database
+        # run function to reset values to imported plot data
         if self.plot_id is not None:
             self.reset_values()
         else:
+        # otherwise reset screen to defaults
             self.set_default_values(controller)
 
+    # Function to reset interface widgets with imported values
     def reset_values(self):
-        self.container_depth_entry.delete(0, 'end')
-        self.plot_active = 0
+
+        # delete or deselect current entries
+        # and replace with imported values
+
         self.plot_active_checkbox.deselect()
-        self.is_container = 0
-        self.is_container_checkbox.deselect()
-
         if self.saved_plot.plot_active is True:
-            self.plot_active = 1
             self.plot_active_checkbox.select()
-
         else:
-            self.plot_active = 0
+            self.plot_active_checkbox.deselect()
 
         self.plot_size_entry.delete(0, 'end')
         self.plot_size_entry.insert(0, self.saved_plot.plot_size)
@@ -3812,21 +3899,34 @@ class EditPlotPage(tk.Frame):
         soil_moisture = self.get_id_value(soil_moisture_query, self.saved_plot.soil_moisture_id)
         self.soil_moisture_combo.combo.set(soil_moisture)
 
+        self.is_container_checkbox.deselect()
+        self.container_depth_entry.delete(0, 'end')
+
         if self.saved_plot.is_container is True:
-            self.is_container = 1
             self.is_container_checkbox.select()
             self.container_depth_entry.insert(0, self.saved_plot.container_depth)
-
         else:
-            self.is_container = 0
+            self.is_container_checkbox.deselect()
 
+    # Function to run standard and custom validation checks
     def validate_edited_plot(self, controller):
 
         try:
+
+            # make sure plot was selected, error if not
+            if (self.plot_id == ""
+                    or self.plot_id is None
+                    or self.plot_id == 0):
+                error_text = ("No plot selected to edit.\n"
+                            "Please select a plot and try again.")
+                controller.open_popup(controller, error_text)
+                self.set_default_values(controller)
+                raise ValueError
+            else:
+                print(self.plot_id)
+
             # get and validate plot size
-
             plot_size = self.plot_size_entry.get()
-
             if (plot_size == ""
                     or plot_size is None
                     or plot_size == '0'):
@@ -3836,8 +3936,6 @@ class EditPlotPage(tk.Frame):
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
-
-            # run validation test
             else:
                 test_plot_size = validate.Validate(plot_size)
                 if test_plot_size.validate_positive_int():
@@ -3852,9 +3950,7 @@ class EditPlotPage(tk.Frame):
                     raise ValueError
 
             # Get and validate Measurement Unit selection
-
             measurement_unit_text = self.measurement_combo.combo.get()
-
             if measurement_unit_text == "" or measurement_unit_text is None:
                 print('No Measurement Unit selected')
                 error_message = ("Missing Measurement Unit selection."
@@ -3862,16 +3958,12 @@ class EditPlotPage(tk.Frame):
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
-
-            # Run validation test
-
             else:
                 test_measurement_unit_text = validate.Validate(measurement_unit_text)
                 if test_measurement_unit_text.validate_text():
                     print('Measurement Unit selection validation passed')
                     self.measurement_unit_id = self.measurement_combo.get_id(measurement_unit_query,
                                                                              measurement_unit_text)
-
                 else:
                     error_message = ("Invalid Measurement Unit selection."
                                      "\nPlease try again.")
@@ -3879,7 +3971,9 @@ class EditPlotPage(tk.Frame):
                                           error_message)
                     raise ValueError
 
-            if self.is_container == 1:
+            # Get container status selection
+            # No validation required for checkbox
+            if self.is_container.get() == 1:
                 self.container = bool(True)
             else:
                 self.container = bool(False)
@@ -3887,12 +3981,9 @@ class EditPlotPage(tk.Frame):
 
             # get and validate container depth if plot is a container
             if self.container:
-
                 container_depth = self.container_depth_entry.get()
-
                 if (container_depth == ""
-                        or container_depth is None
-                        or container_depth == '0'):
+                        or container_depth is None):
                     print('No container_depth entered')
                     error_message = ("Missing Container Depth entry"
                                      "\nand Container is selected."
@@ -3900,13 +3991,12 @@ class EditPlotPage(tk.Frame):
                     controller.open_popup(controller,
                                           error_message)
                     raise ValueError
-
-                # run validation test
                 else:
                     test_container_depth = validate.Validate(container_depth)
-                    if test_container_depth.validate_positive_int():
+                    if test_container_depth.validate_positive_float():
                         print('container_depth validation passed')
-                        self.container_depth = int(container_depth)
+                        self.container_depth = float(container_depth)
+                        self.container_depth  = round(self.container_depth, 2)
                     else:
                         error_message = ("Invalid Container Depth entry."
                                          "\nPlease enter inches in"
@@ -3916,9 +4006,7 @@ class EditPlotPage(tk.Frame):
                         raise ValueError
 
             # Get and validate nitrogen level
-
             nitrogen_level = self.nitrogen_level_entry.get()
-
             if (nitrogen_level == ""
                     or nitrogen_level is None
                     or nitrogen_level == '0'):
@@ -3928,8 +4016,6 @@ class EditPlotPage(tk.Frame):
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
-
-            # run validation test
             else:
                 test_nitrogen_level = validate.Validate(nitrogen_level)
                 if test_nitrogen_level.validate_int():
@@ -3944,9 +4030,7 @@ class EditPlotPage(tk.Frame):
                     raise ValueError
 
             # Get and validate Sun Level selection
-
             sun_text = self.sun_combo.combo.get()
-
             if sun_text == "" or sun_text is None:
                 print('No Sun Level selected')
                 error_message = ("Missing Sun Level selection."
@@ -3954,15 +4038,12 @@ class EditPlotPage(tk.Frame):
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
-
-            # Run validation test
             else:
                 test_sun_text = validate.Validate(sun_text)
                 if test_sun_text.validate_text():
                     print('sun selection validation passed')
                     self.sun_id = self.measurement_combo.get_id(sun_query,
                                                                 sun_text)
-
                 else:
                     error_message = ("Invalid Sun Level selection."
                                      "\nPlease try again.")
@@ -3971,9 +4052,7 @@ class EditPlotPage(tk.Frame):
                     raise ValueError
 
             # Get and validate Soil Moisture selection
-
             soil_moisture_text = self.soil_moisture_combo.combo.get()
-
             if soil_moisture_text == "" or soil_moisture_text is None:
                 print('No soil_moisture_text Level selected')
                 error_message = ("Missing Soil Moisture Level selection."
@@ -3981,16 +4060,12 @@ class EditPlotPage(tk.Frame):
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
-
-            # Run validation test
-
             else:
                 test_soil_moisture_text = validate.Validate(soil_moisture_text)
                 if test_soil_moisture_text.validate_text():
                     print('soil_moisture selection validation passed')
                     self.soil_moisture_id = self.measurement_combo.get_id(soil_moisture_query,
                                                                           soil_moisture_text)
-
                 else:
                     error_message = ("Invalid Soil Moisture Level selection."
                                      "\nPlease try again.")
@@ -3998,9 +4073,9 @@ class EditPlotPage(tk.Frame):
                                           error_message)
                     raise ValueError
 
-            # no validation needed due to checkbox
-
-            if self.plot_active == 1:
+            # Get plot active status
+            # No validation required for checkbox
+            if self.plot_active.get() == 1:
                 self.is_active = bool(True)
             else:
                 self.is_active = bool(False)
@@ -4220,231 +4295,6 @@ class AddSeasonPage(tk.Frame):
                                   error_message)
 
 
-class EditSeasonPage(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-
-        self.set_default_values()
-
-        self.season_combo = DropDown(self,
-                                     seasons_query,
-                                     4,
-                                     3,
-                                     3,
-                                     'E')
-        tk.Button(self,
-                  text="Back to Setup Menu",
-                  bg='white',
-                  fg='dark red',
-                  font='Helvetica 10',
-                  command=lambda: controller.show_frame(SetupPage)).grid(row=2,
-                                                                         column=6,
-                                                                         sticky='EW')
-        tk.Button(self,
-                  width=15,
-                  text="Exit to Main",
-                  bg='dark red',
-                  fg='white',
-                  font='Helvetica 10',
-                  command=lambda: controller.show_frame(StartPage)).grid(row=2,
-                                                                         column=8,
-                                                                         sticky='EW')
-        tk.Button(self,
-                  width=5,
-                  text="Go",
-                  bg='dark green',
-                  fg='white',
-                  font='Helvetica 10',
-                  command=lambda: self.import_my_season(controller)).grid(row=4,
-                                                                          column=6,
-                                                                          sticky='W')
-        tk.Button(self,
-                  text="Save Changes",
-                  bg='dark green',
-                  fg='white',
-                  font='Helvetica 10',
-                  command=lambda: self.export_edited_season(controller)).grid(row=8,
-                                                                              column=8,
-                                                                              sticky='EW')
-
-    # set default label values, so they can persist when other data is reset
-    def set_default_values(self):
-
-        tk.Label(self,
-                 text="Edit Season",
-                 font=LARGE_FONT,
-                 fg='dark green',
-                 bg='white').grid(row=1,
-                                  column=2,
-                                  columnspan=4)
-        tk.Label(self,
-                 text=" ",
-                 bg='white').grid(row=2,
-                                  column=1)
-
-        tk.Label(self,
-                 text="",
-                 bg='white').grid(row=3,
-                                  column=2)
-
-        tk.Label(self,
-                 text="Select Season:",
-                 bg='white',
-                 font=MEDIUM_FONT).grid(row=4,
-                                        column=1,
-                                        columnspan=2)
-        tk.Label(self,
-                 text="",
-                 bg='white').grid(row=5,
-                                  column=2)
-        tk.Label(self,
-                 text="Season Name:",
-                 bg='white').grid(row=6,
-                                  column=1,
-                                  columnspan=2)
-
-        self.season_radio_entry = tk.IntVar()
-        self.radio_selection = 0
-
-        self.radio1 = tk.Radiobutton(self,
-                                     text="Spring",
-                                     bg='white',
-                                     justify=tk.RIGHT,
-                                     anchor='e',
-                                     variable=self.season_radio_entry,
-                                     value=1,
-                                     command=self.select_radio)
-        self.radio1.grid(row=6,
-                         column=3)
-
-        self.radio2 = tk.Radiobutton(self,
-                                     text="Fall",
-                                     bg='white',
-                                     justify=tk.RIGHT,
-                                     anchor='e',
-                                     variable=self.season_radio_entry,
-                                     value=2,
-                                     command=self.select_radio)
-        self.radio2.grid(row=6,
-                         column=4)
-        tk.Label(self,
-                 text="Year:",
-                 bg='white',
-                 justify=tk.LEFT).grid(row=7,
-                                       column=1,
-                                       columnspan=2)
-        self.year = tk.IntVar()
-        self.year.set(int(date.today().strftime("%Y")))
-        self.year_spinbox = tk.Spinbox(self,
-                                       from_=2020,
-                                       to=3000,
-                                       width=10,
-                                       textvariable=self.year
-                                       )
-        self.year_spinbox.grid(row=7,
-                               column=3)
-
-        self.season_active = tk.IntVar()
-        self.season_active_checkbox \
-            = (tk.Checkbutton(self,
-                              text="Season Active",
-                              bg='white',
-                              variable=self.season_active,
-                              onvalue=1,
-                              offvalue=0,
-                              width=20,
-                              justify=tk.LEFT,
-                              anchor='w'))
-        self.season_active_checkbox.grid(row=8,
-                                         column=1,
-                                         columnspan=3)
-
-    def select_radio(self):
-        self.radio_selection = self.season_radio_entry.get()
-
-    def import_my_season(self, controller):
-        self.saved_season = my_season.MySeason()
-        season_selection = self.season_combo.selection
-        season_id = self.season_combo.get_id(seasons_query,
-                                             season_selection)
-
-        self.season_id = self.saved_season.import_my_season(season_id)
-
-        if self.season_id is None:
-
-            error_text = "Season Not Found"
-            controller.open_popup(controller, error_text)
-        else:
-
-            print(self.season_id)
-
-        if self.season_id is not None:
-            self.reset_values(controller)
-        else:
-            self.set_default_values()
-
-    def reset_values(self, controller):
-
-        if self.saved_season.spring == 1:
-            self.radio1.select()
-        elif self.saved_season.fall == 1:
-            self.radio2.select()
-        else:
-            error_text = "Error importing season"
-            controller.open_popup(controller, error_text)
-
-        self.year.set(self.saved_season.my_season_year)
-
-        self.season_active.set(self.saved_season.season_active)
-
-    def export_edited_season(self, controller):
-
-        try:
-
-            self.my_season_text = self.season_combo.selection
-            self.season_id = self.season_combo.get_id(seasons_query,
-                                                      self.my_season_text)
-
-            self.my_season_year = self.year_spinbox.get()
-
-            true_season = self.season_radio_entry.get()
-
-            print(true_season)
-
-            if true_season == 1:
-                self.spring = True
-            else:
-                self.spring = False
-
-            if true_season == 2:
-                self.fall = True
-            else:
-                self.fall = False
-
-            self.is_active = self.season_active.get()
-
-            self.updated_season = my_season.MySeason()
-
-            self.updated_season.export_updated_season(self.season_id,
-                                                      self.my_season_text,
-                                                      self.my_season_year,
-                                                      self.spring,
-                                                      self.fall,
-                                                      self.is_active)
-
-            # display confirmation popup
-            success_message = ('Season updated: '
-                               + self.my_season_text)
-            controller.open_popup(controller,
-                                  success_message)
-
-            # error handling for missing or invalid data
-        except:
-            error_message = "Missing or invalid data, season not updated."
-            controller.open_popup(controller,
-                                  error_message)
-
-
 class DisplayPlan(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -4628,9 +4478,10 @@ class ReportsMenu(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         logo_file = "Logo.png"
+        logo_folder = "Images"
         path = os.path.abspath(__file__)
         logo_dir = os.path.dirname(path)
-        logo_path = os.path.join(logo_dir, logo_file)
+        logo_path = os.path.join(logo_dir, logo_folder, logo_file)
 
         logo = tk.PhotoImage(file=logo_path)
         label = tk.Label(image=logo)
@@ -4720,7 +4571,17 @@ class PlantingPlanReport(tk.Frame):
 
         # icon in the top left corner
         icon_file = "Icon.png"
-        img = tk.PhotoImage(file=icon_file)
+
+        # icon in the top left corner
+        icon_file = "Icon.png"
+        icon_folder = "Images"
+
+        # set file path for logo file location
+        path = os.path.abspath(__file__)
+        icon_dir = os.path.dirname(path)
+        icon_path = os.path.join(icon_dir, icon_folder, icon_file)
+
+        img = tk.PhotoImage(file=icon_path)
         top.iconphoto(False, img)
 
         self.set_labels(controller, top)
@@ -4728,7 +4589,7 @@ class PlantingPlanReport(tk.Frame):
     def set_labels(self, controller, top):
 
         tk.Label(top,
-                 text="Current Garden Plan",
+                 text="My Planting Plan Report",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -4938,14 +4799,20 @@ class PlantsDetailReport(tk.Frame):
 
         # icon in the top left corner
         icon_file = "Icon.png"
-        img = tk.PhotoImage(file=icon_file)
+        icon_folder = "Images"
+        # set file path for logo file location
+        path = os.path.abspath(__file__)
+        icon_dir = os.path.dirname(path)
+        icon_path = os.path.join(icon_dir, icon_folder, icon_file)
+
+        img = tk.PhotoImage(file=icon_path)
         top.iconphoto(False, img)
 
         self.set_labels(controller, top)
 
     def set_labels(self, controller, top):
         tk.Label(top,
-                 text="All Available Plants Detail",
+                 text="All Plants Detail Report",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -5184,7 +5051,13 @@ class OutcomeDetailReport(tk.Frame):
 
         # icon in the top left corner
         icon_file = "Icon.png"
-        img = tk.PhotoImage(file=icon_file)
+        icon_folder = "Images"
+        # set file path for logo file location
+        path = os.path.abspath(__file__)
+        icon_dir = os.path.dirname(path)
+        icon_path = os.path.join(icon_dir, icon_folder, icon_file)
+
+        img = tk.PhotoImage(file=icon_path)
         top.iconphoto(False, img)
 
         self.set_labels(controller, top)
@@ -5412,7 +5285,13 @@ class OutcomeSummaryReport(tk.Frame):
 
         # icon in the top left corner
         icon_file = "Icon.png"
-        img = tk.PhotoImage(file=icon_file)
+        icon_folder = "Images"
+        # set file path for logo file location
+        path = os.path.abspath(__file__)
+        icon_dir = os.path.dirname(path)
+        icon_path = os.path.join(icon_dir, icon_folder, icon_file)
+
+        img = tk.PhotoImage(file=icon_path)
         top.iconphoto(False, img)
 
         self.set_labels(controller, top)
@@ -5698,8 +5577,15 @@ class CompleteYearPage(tk.Frame):
                  bg='white').grid(row=5,
                                   column=9)
 
+    def reset_grid(self):
+        for label in self.winfo_children():
+            if type(label) == tk.Label:
+                label.destroy()
+
     def import_values(self, controller):
         try:
+            self.reset_grid()
+            self.set_default_values()
 
             self.closeout_year = planting_year.PlantingYear()
 
