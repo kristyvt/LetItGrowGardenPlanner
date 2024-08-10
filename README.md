@@ -28,6 +28,9 @@ To recreate Windows exe:
 Links to Video Walkthroughs
   
 Walkthrough of Database: https://1drv.ms/u/s!ApPSXC5kcTPNg6tPYRRvow0BHBOONQ?e=jYbUB0
+
 Walkthrough of Application In Use: https://1drv.ms/u/s!ApPSXC5kcTPNg6tXJlO-MNdUtpgteQ?e=DNjEsv
+
 Walkthrough of Reusable Code: https://1drv.ms/u/s!ApPSXC5kcTPNg6tN-d4dSm_4_mFMfA?e=9Qpp3K
+
 Walkthrough of Data Validation and Verification: https://1drv.ms/u/s!ApPSXC5kcTPNg6tSrJogbA51YIiFTg?e=0mDiGz  
