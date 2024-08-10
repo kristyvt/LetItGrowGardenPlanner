@@ -24,7 +24,6 @@ class ExportQuery:
         cursor = this_connection.connection.cursor()
 
         download_path = os.path.expanduser("~") + '\\Downloads\\' + query_name + '.csv'
-        print(download_path)
 
         cursor.execute(query_name)
 
@@ -35,7 +34,6 @@ class ExportQuery:
             writer.writerow(header)
             for row in data:
                 writer.writerow(row)
-                print(row)
 
         return download_path
 

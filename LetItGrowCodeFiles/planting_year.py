@@ -21,6 +21,8 @@ complete_set_query = 'CompleteYearPlantset'
 increment_nitrogen_query = 'IncrementPlotNitrogen'
 
 
+# Manages a planting year, which all the seasons in a calendar year
+# Includes function to complete the year by updating plot stats and status.
 class PlantingYear:
     def __init__(self):
         self.plant_set_list = []
@@ -29,23 +31,22 @@ class PlantingYear:
 
         self.my_year = None
 
+    # Function to display the current list of plant sets
     def display_plant_set_list(self):
         for plant in self.plant_set_list:
             plant.display_plant_set()
 
+    # Function to display the current list of plots
     def display_plot_list(self):
         for plot in self.plot_list:
             plot.display_plot()
 
+    # Function to display the current list of plants
     def display_master_plant_list(self):
         for plant in self.master_plant_list:
             plant.display_plant()
 
-    def import_year_data(self, my_year):
-        self.my_year = int(my_year)
-        self.season_text = None
-        self.season_year = None
-
+    # Function to generate the current list of plants
     def generate_master_plant_list(self):
 
         this_connection = data_connection.Connection()
@@ -53,9 +54,6 @@ class PlantingYear:
 
         cursor.execute(plant_requirements_query)
         records = cursor.fetchall()
-
-        for r in records:
-            print(r[0])
 
         for r in records:
             plant_id = r[0]
@@ -73,8 +71,6 @@ class PlantingYear:
             times_succeeded = r[12]
 
             this_plant = plant.Plant()
-
-            print(this_plant)
 
             this_plant.set_plant_requirements(plant_id,
                                                    plant_name,
@@ -94,6 +90,9 @@ class PlantingYear:
 
             self.master_plant_list.append(this_plant)
 
+
+    # Function to generate the current list of plots
+
     def generate_plot_list(self):
 
         self.plot_list = []
@@ -109,13 +108,15 @@ class PlantingYear:
 
         return self.plot_list
 
+
+    # Function to complete the planting year
+
     def complete_planting_year(self,
                                plant_set_list):
 
         self.generate_master_plant_list()
 
         for set in plant_set_list:
-            print('about to display set')
             set.display_plant_set()
 
             # retrieve values previously pulled from SQL
@@ -130,21 +131,18 @@ class PlantingYear:
 
             self.nitrogen_change = None
 
+            # Set nitrogen level to update plot with based on the plant
+
             for plant in self.master_plant_list:
                 if plant.plant_id == self.plant_id:
                     self.nitrogen_change = plant.crop_nitrogen_level
                     break
 
-            print(self.plant_id)
-            print(self.success)
-            print(self.plot_id)
-            print(self.nitrogen_change)
-            print(self.season_id)
-
             this_connection = data_connection.Connection()  # connect to server
             cursor = this_connection.connection.cursor()  # set connection cursor
 
-            # execute stored procedure to export to database using inputs
+            # execute stored procedure to export outcome and nitrogen
+            # level change for each plant in the set during that year
 
             (cursor.execute
              (complete_set_query + ' ?, ?, ?, ?, ?',
@@ -156,14 +154,12 @@ class PlantingYear:
 
             cursor.commit()  # finalize entry into table
 
-            print('Finished Updating Plant ID: ' + str(self.plant_id))  # confirmation
-
             this_connection.end_connection()
 
         this_connection = data_connection.Connection()  # connect to server
         cursor = this_connection.connection.cursor()  # set connection cursor
 
-        # execute stored procedure to export to database using inputs
+        # execute stored procedure to increment all plots on the list by 1
 
         self.plot_list = self.generate_plot_list()
         for plot in self.plot_list:
@@ -172,7 +168,5 @@ class PlantingYear:
               [plot]))
 
             cursor.commit()  # finalize entry into table
-
-            print('Nitrogen incremented for plot ID: ' + str(plot))
 
         this_connection.end_connection()

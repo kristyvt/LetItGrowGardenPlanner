@@ -13,14 +13,14 @@ import re
 import datetime
 from datetime import datetime
 
+
 # class to validate data input by user
 # or retrieved from the database
 class Validate:
     def __init__(self, data):
         self.data = data  # the data to validate
 
-
-# function to validate any integer
+    # function to validate any integer
     def validate_int(self):
 
         # if there is data, validate it
@@ -39,7 +39,6 @@ class Validate:
             return None
 
     def validate_positive_int(self):
-        print('calling')
         # if there is data, validate it
         if self.data:
             print(self.data)
@@ -47,18 +46,14 @@ class Validate:
                 # check if integer and if so, is it more than 0?
                 int_data = int(self.data)
                 if int_data > 0:
-                    print('valid positive int')
                     return True
                 else:
-                    print('invalid range')
                     return False
 
             except TypeError:
-                print('invalid type')
                 return False
 
             except ValueError:
-                print('invalid value')
                 return False
 
         # if no data, return null value
@@ -104,10 +99,8 @@ class Validate:
 
                 # test if characters in string are valid
                 if re.fullmatch(valid_chars, str(self.data)) and not re.fullmatch(invalid_strings, str(self.data)):
-                    print(f"'{self.data}' is a valid string!")
                     return True
                 else:
-                    print(f"'{self.data}' is not a valid string!")
                     return False
 
             except ValueError:
@@ -130,7 +123,7 @@ class Validate:
 
                 # then attempt to convert the inputs string a date
                 test_date = datetime.strptime(data_string,
-                                         '%m/%d/%y').date()
+                                              '%m/%d/%y').date()
 
                 # return true if conversion is successful
                 if test_date:

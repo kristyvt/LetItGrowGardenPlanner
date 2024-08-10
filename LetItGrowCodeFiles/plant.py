@@ -99,9 +99,9 @@ class Plant:
         return success_message
 
     def display_plant(self):
-        print(self.__dict__)  # mostly for testing, DELETE before submission
+        print(self.__dict__)  # mostly for testing
 
-
+    # set variable values for requirements
     def set_plant_requirements(self,
                   plant_id,
                   plant_name,
@@ -116,8 +116,6 @@ class Plant:
                   frost_tolerance_id,
                   total_times_planted,
                   times_succeeded):
-
-        print('setting requirements')
 
         self.plant_id = plant_id
         self.plant_name = plant_name

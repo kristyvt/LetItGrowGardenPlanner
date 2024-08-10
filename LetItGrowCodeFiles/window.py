@@ -12,6 +12,8 @@ Last Revised 8/3/24
 # built in libraries
 import os  # to locate file path for images
 import sys  # for system exit
+
+# installed Python libraries
 import tkinter as tk  # interface and formatting libraries
 from tkinter import ttk
 from tkcalendar import DateEntry
@@ -360,7 +362,7 @@ class StartPage(tk.Frame):
 
         tk.Button(self,
                   width=25,
-                  text="Start Garden Plan",
+                  text="Create Garden Plan",
                   bg='dark green',
                   fg='white',
                   font='Helvetica 12',
@@ -411,7 +413,7 @@ class StartPage(tk.Frame):
                                   column=1,
                                   columnspan=3)
         tk.Label(self,
-                 text='Then click "Start Garden Plan" to select which Plants to grow!',
+                 text='Then click "Create Garden Plan" to select which Plants to grow!',
                  font=MEDIUM_FONT,
                  fg='dark green',
                  bg='white').grid(row=7,
@@ -441,7 +443,7 @@ class AddPlantPage(tk.Frame):
         tk.Frame.__init__(self, parent)  # launch window
 
         tk.Label(self,
-                 text="Add Plant",
+                 text="Add New Plant",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -1737,7 +1739,7 @@ class EditSetPage(tk.Frame):
     def set_default_values(self, controller):
 
         tk.Label(self,
-                 text="Edit Plant Set",
+                 text="Update Plant Set",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -2019,7 +2021,6 @@ class EditSetPage(tk.Frame):
         plant = self.plant_combo.selection
 
         if plant == "" or plant is None:
-            print('No plant entered')
             error_message = ("Missing or invalid Plant Name selection."
                              "\nPlease try again.")
             controller.open_popup(controller,
@@ -2029,7 +2030,6 @@ class EditSetPage(tk.Frame):
         else:
             test_plant = validate.Validate(self.plant_combo.selection)
             if test_plant.validate_text():
-                print('Plant selection validation passed')
                 plant = self.plant_combo.selection
                 return plant
 
@@ -2045,7 +2045,6 @@ class EditSetPage(tk.Frame):
         season = self.season_combo.selection
 
         if season == "" or season is None:
-            print('No season entered')
             error_message = ("Missing or invalid season selection."
                              "\nPlease try again.")
             controller.open_popup(controller,
@@ -2055,7 +2054,6 @@ class EditSetPage(tk.Frame):
         else:
             test_season = validate.Validate(self.season_combo.selection)
             if test_season.validate_text():
-                print('season selection validation passed')
                 season = self.season_combo.selection
                 return season
 
@@ -2071,7 +2069,6 @@ class EditSetPage(tk.Frame):
         set_type = self.set_type_combo.selection
 
         if set_type == "" or set_type is None:
-            print('No set_type entered')
             error_message = ("Missing or invalid Set Type."
                              "\nPlease try again.")
             controller.open_popup(controller,
@@ -2081,7 +2078,6 @@ class EditSetPage(tk.Frame):
         else:
             test_set_type = validate.Validate(set_type)
             if test_set_type.validate_text():
-                print('set_type selection validation passed')
                 set_type = set_type
                 return set_type
 
@@ -2097,7 +2093,6 @@ class EditSetPage(tk.Frame):
         plot = self.plot_entry.get()
 
         if plot == "" or plot is None:
-            print('No plot entered')
             error_message = ("Missing or invalid Plot selection."
                              "\nPlease try again.")
             controller.open_popup(controller,
@@ -2107,7 +2102,6 @@ class EditSetPage(tk.Frame):
         else:
             test_plot = validate.Validate(plot)
             if test_plot.validate_positive_int():
-                print('plot selection validation passed')
                 plot = plot
                 return plot
 
@@ -2221,7 +2215,6 @@ class EditSetPage(tk.Frame):
                 self.reset_values(controller)
         except:
             if ValueError:
-                print("Value Error")
                 pass
             else:
                 error_message = "Other error, plant set not found."
@@ -2324,9 +2317,6 @@ class EditSetPage(tk.Frame):
             if self.saved_plant_set.last_harvest_date is not None:
                 self.last_harvest_entry.set_date(self.saved_plant_set.last_harvest_date)
 
-            print('saved outcome is: ')
-            print(self.saved_plant_set.outcome)
-
             if self.saved_plant_set.outcome is None:
                 self.radio_selection = 9
                 self.radio1.select()
@@ -2336,10 +2326,6 @@ class EditSetPage(tk.Frame):
             elif self.saved_plant_set.outcome == 0:
                 self.radio_selection = 0
                 self.radio3.select()
-
-            print('radio selection is')
-            print(self.radio_selection)
-
 
         except TypeError:
             error_text = "Error resetting values"
@@ -2352,9 +2338,7 @@ class EditSetPage(tk.Frame):
             if validated_plant:
                 self.plant_id = int(self.plant_combo.get_id(plant_name_query,
                                                             validated_plant))
-                print('Plant ID selected is: ' + str(self.plant_id))
             else:
-                print('No Plant ID')
                 raise ValueError
 
             # get and validate season selection
@@ -2362,7 +2346,6 @@ class EditSetPage(tk.Frame):
             if validated_season:
                 self.season_id = int(self.season_combo.get_id(seasons_query,
                                                               validated_season))
-                print("season ID is " + str(self.season_id))
             else:
                 raise ValueError
 
@@ -2370,7 +2353,6 @@ class EditSetPage(tk.Frame):
             validated_plot = self.validate_plot_selection(controller)
             if validated_plot:
                 self.plot_id = int(validated_plot)
-                print('plot is ' + str(self.plot_id))
             else:
                 raise ValueError
 
@@ -2378,7 +2360,6 @@ class EditSetPage(tk.Frame):
             validated_quantity = self.validate_set_quantity_selection(controller)
             if validated_quantity:
                 self.set_quantity = int(validated_quantity)
-                print('set quantity is ' + str(self.set_quantity))
             else:
                 raise ValueError
 
@@ -2399,11 +2380,9 @@ class EditSetPage(tk.Frame):
             else:
                 validated_set_type = self.validate_set_type_selection(controller)
                 if validated_set_type:
-                    print('set type to check is ' + str(set_type))
 
                     self.set_type_id = int(self.set_type_combo.get_id(set_type_query,
                                                                       validated_set_type))
-                    print("Set Type ID is " + str(self.set_type_id))
 
                 else:
                     raise ValueError
@@ -2415,18 +2394,15 @@ class EditSetPage(tk.Frame):
                 controller.open_popup(controller,
                                       error_message)
                 raise ValueError
-            print("Set Type ID is " + str(self.set_type_id))
 
             # get and validate optional notes entry
             self.set_notes = self.validate_notes_entry(controller)
-            print("Set Notes: " + str(self.set_notes))
 
             # begin getting and validating planted date
             self.planted_date = self.date_planted_entry.get()
 
             # set date to null if nothing was entered
             if self.planted_date == "":
-                print('No planted date entered')
                 self.planted_date = None
             else:
 
@@ -2435,7 +2411,7 @@ class EditSetPage(tk.Frame):
                 planted_date_validation = test_planted_date.validate_date()
                 if planted_date_validation:
                     self.planted_date = self.planted_date
-                    print('Plant date validation passed')
+
 
                     # raise and print error message if it doesn't pass
                 elif planted_date_validation is False:
@@ -2448,7 +2424,6 @@ class EditSetPage(tk.Frame):
 
                     # do nothing if no data was entered
                 else:
-                    print('Planted date blank, no error')
                     pass
 
             # end getting and validating planted date
@@ -2459,7 +2434,6 @@ class EditSetPage(tk.Frame):
 
             # set date to null if nothing was entered
             if self.first_harvest_date == "":
-                print('No harvest date entered')
                 self.first_harvest_date = None
 
             else:
@@ -2492,7 +2466,6 @@ class EditSetPage(tk.Frame):
 
                     else:
                         self.first_harvest_date = self.first_harvest_date
-                        print('First Harvest date validation passed')
 
                 # raise and print error message if data validation doesn't pass
                 elif first_harvest_date_validation is False:
@@ -2505,7 +2478,6 @@ class EditSetPage(tk.Frame):
 
                 # do nothing if no data was entered
                 else:
-                    print('First Harvest date blank, no error')
                     pass
 
             # end getting and validating first harvest date
@@ -2516,7 +2488,6 @@ class EditSetPage(tk.Frame):
 
             # set date to null if nothing was entered
             if self.last_harvest_date == "":
-                print('No last harvest date entered')
                 self.last_harvest_date = None
             else:
                 # run the function to validate the date if there is data
@@ -2549,7 +2520,6 @@ class EditSetPage(tk.Frame):
                     else:
 
                         self.last_harvest_date = self.last_harvest_date
-                        print('last Harvest date validation passed')
 
                 # raise and print error message if data validation doesn't pass
                 elif last_harvest_date_validation is False:
@@ -2566,18 +2536,10 @@ class EditSetPage(tk.Frame):
                     pass
             # end getting and validating last harvest date
 
-
-            print('radio is: ')
-            print(self.radio_selection)
-
-
             if self.radio_selection == 9:
                 self.outcome = None
             else:
                 self.outcome = self.radio_selection
-
-            print('outcome assigned')
-            print(self.outcome)
 
             self.updated_set = plant_set.PlantSet()
             self.updated_set.add_new_plant_set(self.plant_id, self.set_type_id, self.set_quantity)
@@ -2587,7 +2549,6 @@ class EditSetPage(tk.Frame):
             return True
 
         except ValueError:
-            print("Value Error in edited set1")
             return False
         except Exception:
             error_message = "Other error, plant set not updated."
@@ -2694,19 +2655,17 @@ class SetupPage(tk.Frame):
                                                    column=4,
                                                    columnspan=3)
         tk.Label(self,
-                 text="Setup and Maintenance",
+                 text="Garden Setup and Maintenance Menu",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
-                                  column=2,
+                                  column=1,
                                   columnspan=4)
-
         tk.Label(self,
                  text=" ",
                  bg='white').grid(row=2,
                                   column=1,
                                   columnspan=4)
-
         tk.Button(self,
                   width=15,
                   text="Exit to Main",
@@ -2755,7 +2714,7 @@ class SetupPage(tk.Frame):
 
         tk.Button(self,
                   width=20,
-                  text="Edit Existing Plot",
+                  text="Edit Individual Plot",
                   bg='dark green',
                   fg='white',
                   font='Helvetica 10',
@@ -2793,7 +2752,7 @@ class AddZonesPage(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         tk.Label(self,
-                 text="New / Edit Zone",
+                 text="Add New Zone",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -4591,7 +4550,7 @@ class PlantingPlanReport(tk.Frame):
     def set_labels(self, controller, top):
 
         tk.Label(top,
-                 text="Current Garden Plan",
+                 text="My Planting Plan Report",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -4814,7 +4773,7 @@ class PlantsDetailReport(tk.Frame):
 
     def set_labels(self, controller, top):
         tk.Label(top,
-                 text="All Available Plants Detail",
+                 text="All Plants Detail Report",
                  font=LARGE_FONT,
                  fg='dark green',
                  bg='white').grid(row=1,
@@ -5596,7 +5555,6 @@ class CompleteYearPage(tk.Frame):
             year = self.year_spinbox.get()
 
             if year == "" or year is None or year == '0':
-                print('No year entered')
                 error_message = ("Missing year selection."
                                  "\nPlease try again.")
                 controller.open_popup(controller,
@@ -5608,7 +5566,6 @@ class CompleteYearPage(tk.Frame):
                 test_year = validate.Validate(year)
                 if test_year.validate_positive_int():
                     if int(year) >= 2000 and int(year) <= 3000:
-                        print('year validation passed')
                         self.closeout_year.my_year = int(year)
 
                     else:
@@ -5623,8 +5580,6 @@ class CompleteYearPage(tk.Frame):
                     controller.open_popup(controller,
                                           error_message)
                     raise ValueError
-
-            print("closeout year = " + str(self.closeout_year.my_year))
 
             this_connection = data_connection.Connection()
             cursor = this_connection.connection.cursor()

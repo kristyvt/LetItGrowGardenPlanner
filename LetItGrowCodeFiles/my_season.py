@@ -15,6 +15,7 @@ my_season_query = 'QueryMySeasonData'
 update_season_query = 'UpdateMySeason'  # to be created
 
 
+# class to manage details regarding a specific season
 class MySeason:
     def __init__(self):
         self.my_season_id = None
@@ -23,7 +24,9 @@ class MySeason:
         self.spring = None
         self.fall = None
 
-    # season is Spring or Fall - set up as checkbox
+    # Season is Spring or Fall
+    # Set season text value automatically based on
+    # season name and year passed from calling func.
     def set_season_values(self, season, year):
         self.season_year = year
         year_text = str(year)
@@ -39,11 +42,7 @@ class MySeason:
         else:
             self.fall = False
 
-        print(self.season_text)
-        print(self.spring)
-        print(self.fall)
-
-
+    # Export new season entry to SQL database
     def export_season(self):
         self.new_season_text = str(self.season_text)
         self.new_season_year = int(self.season_year)
@@ -60,14 +59,13 @@ class MySeason:
 
         cursor.commit()  # finalize entry into table
 
-        print('Finished Inserting Season '
-              + self.new_season_text)  # confirmation
-
         this_connection.end_connection()
+
+        # return text for use with confirmation message
 
         return self.new_season_text
 
-
+    # Function to import season details to display onscreen
     def import_my_season(self, my_season_id):
 
         self.season_text = None
@@ -96,8 +94,6 @@ class MySeason:
 
             else:
                 self.my_season_id = r[0]
-                print(r)
-                print(r[0])
                 break
 
         return self.my_season_id

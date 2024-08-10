@@ -15,6 +15,7 @@ plant_set_query = 'QueryPlantSetData'
 update_set_query = 'UpdatePlantSet'
 
 
+# Manages planting occurrence details using a Plantset object
 class PlantSet:
     def __init__(self):
         self.set_quantity = None
@@ -23,6 +24,7 @@ class PlantSet:
         self.plot_id = None
         self.set_type_id = None
 
+    # set values that apply to all plant sets
     def add_new_plant_set(self,
                           plant_id,
                           set_type_id,
@@ -31,17 +33,21 @@ class PlantSet:
         self.set_quantity = int(set_quantity)
         self.set_type_id = int(set_type_id)
 
+    # used for testing
     def display_plant_set(self):
-        print(self.__dict__)  # mostly for testing, DELETE before submission
+        print(self.__dict__)
 
+    # Function to assign a plot ID to a plant set
     def add_plot_id(self,
                     plot_id):
         self.plot_id = int(plot_id)
 
+    # Function to assign a season ID to a plant set
     def add_season_id(self,
                       season_id):
         self.my_season_id = int(season_id)
 
+    # Function to export new plant set data to SQL database
     def export_plant_set(self,
                          set_quantity,
                          plant_id,
@@ -69,23 +75,18 @@ class PlantSet:
 
         cursor.commit()  # finalize entry into table
 
-        print('Finished Inserting Plant ID number ' + str(self.plant_id))  # confirmation
-
         self.display_plant_set()
 
         this_connection.end_connection()
 
+    # Function to import plant set details to display onscreen
     def import_plant_set(self,
                          plant_selection,
                          season_selection,
                          q_plant_set_id):
 
-
-
         self.plant_name = plant_selection
         self.season_text = season_selection
-
-        print(self.plant_name)
 
         self.set_quantity = None
         self.plant_id = None
@@ -121,8 +122,6 @@ class PlantSet:
             self.outcome = r[9]
             self.plant_set_notes = r[10]
 
-            print('test')
-
             if self.plant_set_id is None:
                 print('not found')
 
@@ -133,6 +132,8 @@ class PlantSet:
                 break
 
         return self.plant_set_id
+
+    # Function to export edited set details to SQL
 
     def export_updated_set(self,
                            plant_set_id,
@@ -183,9 +184,5 @@ class PlantSet:
            self.plant_set_notes]))
 
         cursor.commit()  # finalize entry into table
-
-        print('Finished Inserting Plant Set ID number ' + str(self.plant_set_id))  # confirmation
-
-        self.display_plant_set()
 
         this_connection.end_connection()
