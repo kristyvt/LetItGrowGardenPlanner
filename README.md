@@ -34,3 +34,8 @@ Walkthrough of Reusable Code: https://1drv.ms/v/s!ApPSXC5kcTPNg6s8Rm_fRWVUAzdPpw
 
 Walkthrough of Data Validation and Verification: https://1drv.ms/v/s!ApPSXC5kcTPNg6s-rbXuJZexiEje4w?e=1M0ISd
 
+
+Project Documentation File
+
+[ProjectDocumentation_KStark.pdf](https://github.com/user-attachments/files/16573531/ProjectDocumentation_KStark.pdf)
+
